@@ -1,5 +1,6 @@
 package epcc.ed.ac.uk.gcrf_rear.data;
 
+import android.content.Context;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,6 +12,8 @@ import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import java.io.IOError;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,9 +25,13 @@ import java.util.List;
 public class DatabaseThread extends Thread {
 
     public Handler mHandler;
+    public Context mContext;
+
+    private DataStore mCurrentStore;
+    private long mRowsPerFile = 6*100; // store a file for each minute (roughly)
+
     private Integer mDisplaySensor = Sensor.TYPE_ACCELEROMETER;
     private long mDisplayDelay = 10000000; // 10,000,000 nanoseconds = 0.1 seconds for display updates
-
     private SurfaceHolder surfaceHolder;
     private final Paint paintX, paintY, paintZ;
     private CircularBuffer<DataPoint> mDataPoints;
@@ -49,17 +56,46 @@ public class DatabaseThread extends Thread {
         surfaceHolder = holder;
     }
 
+    public void setContext(Context context) {
+        mContext = context;
+    }
+
     @Override
     public void run() {
         Looper.prepare();
         mHandler = new Handler() {
             private int numRows = 0;
             private long prevTs = -1;
+            private long numFiles = 0;
             @Override
             public void handleMessage(Message msg) {
                 numRows++;
                 DataPoint dataPoint = (DataPoint)msg.obj;
+                if ((numRows % 100) == 0) {
+                    Log.d("database", "Received " + numRows + " records. Value: " + dataPoint);
+                }
                 if (dataPoint != null) {
+                    try {
+                        if (numRows > mRowsPerFile) {
+                            numRows = 0;
+                            if (mCurrentStore != null) {
+                                mCurrentStore.close();
+                                numFiles++;
+                                Log.d("database", "Closed file");
+
+                            }
+                            mCurrentStore = new DataStore(mContext, numFiles);
+                        }
+                        if (mCurrentStore == null) {
+                            mCurrentStore = new DataStore(mContext, numFiles);
+                        }
+
+                        if (mCurrentStore != null) {
+                            mCurrentStore.writeRecord(dataPoint);
+                        }
+                    } catch (IOException e) {
+                        Log.e("database", "error writing data", e);
+                    }
                     long ts = dataPoint.getTimestamp();
                     if (mDisplayOn && dataPoint.getSensorType() == mDisplaySensor) {
                         mDataPoints.add(dataPoint);
@@ -68,9 +104,6 @@ public class DatabaseThread extends Thread {
                         }
                     }
                     prevTs = ts;
-                }
-                if ((numRows % 100) == 0) {
-                    Log.e("database", "Wrote " + numRows + " records. Value: " + dataPoint);
                 }
             }
         };
@@ -117,6 +150,17 @@ public class DatabaseThread extends Thread {
         }
         surfaceHolder.unlockCanvasAndPost(canvas);
 
+    }
+
+    public void close() {
+        try {
+            mCurrentStore.close();
+        } catch (IOException e) {
+            Log.e("database", "error closing data file", e);
+        }
+        finally {
+            mCurrentStore = null;
+        }
     }
 
     public void displaySensor(int sensorType) {

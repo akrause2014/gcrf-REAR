@@ -30,39 +30,23 @@ public class DataSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         paint.setStrokeJoin(Paint.Join.ROUND);
     }
 
-
-//    public void setDataPoints(CircularBuffer<DataPoint> points) {
-//        mDataPoints = points;
-//    }
-
     public void setDatabaseThread(DatabaseThread databaseThread) {
         mDatabaseThread = databaseThread;
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        Log.e("view", "created");
         mDatabaseThread.setSurfaceHolder(surfaceHolder);
-//        mDiagramThread = new DiagramThread(getHolder(), mDataPoints);
-//        mDiagramThread.setDrawing(true);
-//        mDiagramThread.start();
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int w, int h) {
-        Log.e("view", "drawing graph");
         mDatabaseThread.setSurfaceHolder(surfaceHolder);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
         mDatabaseThread.setSurfaceHolder(null);
-//        mDiagramThread.setDrawing(false);
-//        try {
-//            mDiagramThread.join();
-//        } catch (InterruptedException e) {
-//            // ignore
-//        }
     }
 
 }

@@ -1,6 +1,7 @@
 package epcc.ed.ac.uk.gcrf_rear;
 
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -23,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private DatabaseThread mDatabase;
     private DataSurfaceView mDataView;
     private SensorManager mSensorManager;
+    private int mSamplingRate = 10;
 
 
     @Override
@@ -31,8 +33,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
 
         mDatabase = new DatabaseThread();
-        mDataView = (DataSurfaceView)findViewById(R.id.data_view_id);
+        mDatabase.setContext(this);
         mDatabase.start();
+        mDataView = (DataSurfaceView)findViewById(R.id.data_view_id);
         mDataView.setDatabaseThread(mDatabase);
 
         ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton);
@@ -43,20 +46,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Sensor senAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
                     if (senAccelerometer != null) {
                         // Register accelerometer listener with sampling rate 100Hz
-                        mSensorManager.registerListener(MainActivity.this, senAccelerometer, 10);
+                        mSensorManager.registerListener(MainActivity.this, senAccelerometer, mSamplingRate);
+                        Log.d("main", "registered listener for accelerometer");
                     }
                     Sensor senGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
                     if (senGyroscope != null){
                         // Register gyroscope listener with sampling rate 100Hz
-                        mSensorManager.registerListener(MainActivity.this, senGyroscope, 10);
+                        mSensorManager.registerListener(MainActivity.this, senGyroscope, mSamplingRate);
+                        Log.d("main", "registered listener for gyroscope");
                     }
                     Sensor senMagneticField = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
                     if (senMagneticField != null){
                         // Register magnetic field listener with sampling rate 100Hz
-                        mSensorManager.registerListener(MainActivity.this, senMagneticField, 10);
+                        mSensorManager.registerListener(MainActivity.this, senMagneticField, mSamplingRate);
+                        Log.d("main", "registered listener for magnetic field");
                     }
                 } else {
                     mSensorManager.unregisterListener(MainActivity.this);
+                    mDatabase.close();
                 }
             }
         });
@@ -75,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             Message msg = new Message();
             msg.obj = new DataPoint(sensorEvent.timestamp, sensorEvent.values, sensorEvent.sensor.getType());
-            mDatabase.mHandler.sendEmptyMessage(1);
             mDatabase.mHandler.sendMessage(msg);
         }
     }
@@ -97,6 +103,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         switch (item.getItemId()) {
             case R.id.menu_upload_data:
                 Log.d("menu", "Upload data selected");
+                Intent intent = new Intent(this, UploadDataActivity.class);
+                this.startActivity(intent);
                 return true;
             case R.id.menu_settings:
                 return true;
