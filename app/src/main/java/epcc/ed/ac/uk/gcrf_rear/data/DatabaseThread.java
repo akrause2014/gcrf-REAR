@@ -24,6 +24,9 @@ import java.util.List;
 
 public class DatabaseThread extends Thread {
 
+    public static final int SENSOR_MSG = 1;
+    public static final int LOCATION_MSG = 2;
+
     public Handler mHandler;
     public Context mContext;
 
@@ -70,6 +73,19 @@ public class DatabaseThread extends Thread {
             @Override
             public void handleMessage(Message msg) {
                 numRows++;
+                switch (msg.arg1) {
+                    case LOCATION_MSG:
+                        handleLocationMessage(msg);
+                        break;
+                    case SENSOR_MSG:
+                        handleSensorMessage(msg);
+                        break;
+                }
+            }
+            private void handleLocationMessage(Message msg) {
+                Log.d("database", "Received location message");
+            }
+            private void handleSensorMessage(Message msg) {
                 DataPoint dataPoint = (DataPoint)msg.obj;
                 if ((numRows % 100) == 0) {
                     Log.d("database", "Received " + numRows + " records. Value: " + dataPoint);
@@ -105,6 +121,7 @@ public class DatabaseThread extends Thread {
                     }
                     prevTs = ts;
                 }
+
             }
         };
         Looper.loop();
