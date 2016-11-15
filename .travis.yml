@@ -11,12 +11,11 @@ android:
   - sys-img-x86-android-10
 script:
 - ./gradlew clean build connectedAndroidTest -PdisablePreDex --stacktrace
-- ./gradlew assembleRelease
-deploy:
-  provider: releases
-  api_key:
-    secure: CPF6KnullDmHLD/dq0xzjtSkcRAjwW9U8+RohHoyKhe1EyVcG8fpjKosq/VZzF+K99cYbkt13ip7sDH8mNKlXdE/WgGl9p2eGeJNT4NV/1axgvg5JxQYfZgj4pgInaZlZOsoBTbFtREo/U9DYbNxW8Q3gIVTqg4uuZXkNuZEQa5vMoJO3OlLVXS3qUP+sj9HE8HrQ4C7ncyTukfD7QJOpZIpF7hPa2MUlBHEbX8b+oIHJTIWBvCfuHtXYpA5yuzF8wzbV5UK25Peu83AMNMp9z7RDzuEjLbAbQ/HUM/tA12KTyLyZOfiKsQRcYdgvQ3k4Kp1zVMhusO8qCe9wKHC83ZjobB+5YluH1frsWclCsR7Iz4lvwtTVb9xSUhsjFdyE/+1vQjDCJ12/FfhgHX0KUkJR8amQN37ajqqiAgHVU8E3VjRG/fVOSLogVvR4ER9kkUdRpb26cvEDjxTbLqGlYIWA9s/LpVoKwIiCnNJEGn62qAgWx6E1GzW8hZNDZ8RuMfaxpvUMpwu3Nq6VkpKZ00ouWMhi1MlAfS5t5hxJlvKWw6J9c2Ewx1fpdBktFjPvlgBv21AQ1KUmlWGg3GADt02gf9t5jxiipQ/KBvxYDuZsSLcXlmBL2D6iLDJK6IKlxjsCthEI1pYMFGG8VFlCBwXXXVyNzfsqx8QITsqSXE=
-  file: app/build/outputs/apk/app*release*.apk
-  skip_cleanup: true
-  on:
-    repo: akrause2014/gcrf-REAR
+#deploy:
+#  provider: releases
+#  api_key:
+#    secure: CPF6KnullDmHLD/dq0xzjtSkcRAjwW9U8+RohHoyKhe1EyVcG8fpjKosq/VZzF+K99cYbkt13ip7sDH8mNKlXdE/WgGl9p2eGeJNT4NV/1axgvg5JxQYfZgj4pgInaZlZOsoBTbFtREo/U9DYbNxW8Q3gIVTqg4uuZXkNuZEQa5vMoJO3OlLVXS3qUP+sj9HE8HrQ4C7ncyTukfD7QJOpZIpF7hPa2MUlBHEbX8b+oIHJTIWBvCfuHtXYpA5yuzF8wzbV5UK25Peu83AMNMp9z7RDzuEjLbAbQ/HUM/tA12KTyLyZOfiKsQRcYdgvQ3k4Kp1zVMhusO8qCe9wKHC83ZjobB+5YluH1frsWclCsR7Iz4lvwtTVb9xSUhsjFdyE/+1vQjDCJ12/FfhgHX0KUkJR8amQN37ajqqiAgHVU8E3VjRG/fVOSLogVvR4ER9kkUdRpb26cvEDjxTbLqGlYIWA9s/LpVoKwIiCnNJEGn62qAgWx6E1GzW8hZNDZ8RuMfaxpvUMpwu3Nq6VkpKZ00ouWMhi1MlAfS5t5hxJlvKWw6J9c2Ewx1fpdBktFjPvlgBv21AQ1KUmlWGg3GADt02gf9t5jxiipQ/KBvxYDuZsSLcXlmBL2D6iLDJK6IKlxjsCthEI1pYMFGG8VFlCBwXXXVyNzfsqx8QITsqSXE=
+#  file: app/build/outputs/apk/app*release*.apk
+#  skip_cleanup: true
+#  on:
+#    repo: akrause2014/gcrf-REAR
