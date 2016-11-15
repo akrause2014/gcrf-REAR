@@ -9,6 +9,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Created by akrause on 11/11/2016.
@@ -19,9 +20,9 @@ public class DataStore {
     private DataOutputStream mOutputStream;
     private String mFileName;
 
-    public DataStore(Context context, long count) throws IOException {
+    public DataStore(Context context) throws IOException {
         if (isExternalStorageWritable()) {
-            mFileName = "data-" + count + ".dat";
+            mFileName = UUID.randomUUID().toString() + ".dat";
             Log.d("data store", "writing to file: " + mFileName);
             openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
         }

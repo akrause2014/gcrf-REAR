@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by akrause on 09/11/2016.
@@ -69,7 +70,6 @@ public class DatabaseThread extends Thread {
         mHandler = new Handler() {
             private int numRows = 0;
             private long prevTs = -1;
-            private long numFiles = 0;
             @Override
             public void handleMessage(Message msg) {
                 numRows++;
@@ -96,14 +96,13 @@ public class DatabaseThread extends Thread {
                             numRows = 0;
                             if (mCurrentStore != null) {
                                 mCurrentStore.close();
-                                numFiles++;
                                 Log.d("database", "Closed file");
 
                             }
-                            mCurrentStore = new DataStore(mContext, numFiles);
+                            mCurrentStore = new DataStore(mContext);
                         }
                         if (mCurrentStore == null) {
-                            mCurrentStore = new DataStore(mContext, numFiles);
+                            mCurrentStore = new DataStore(mContext);
                         }
 
                         if (mCurrentStore != null) {
