@@ -7,8 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
 
-import epcc.ed.ac.uk.gcrf_rear.view.Settings;
-
 public class SettingsActivity extends AppCompatActivity {
 
     public static final String PREFS_NAME = "REARPreferences";
