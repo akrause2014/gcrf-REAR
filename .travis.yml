@@ -1,3 +1,5 @@
+sudo: false
+
 language: android
 jdk: oraclejdk8
 
@@ -10,4 +12,4 @@ android:
   - extra
 
 script:
-- "./gradlew clean build connectedCheck --stacktrace"
+- "./gradlew clean build connectedAndroidTest -PdisablePreDex --stacktrace"
