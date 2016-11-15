@@ -12,12 +12,10 @@ import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import java.io.IOError;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by akrause on 09/11/2016.
@@ -32,7 +30,7 @@ public class DatabaseThread extends Thread {
     public Context mContext;
 
     private DataStore mCurrentStore;
-    private long mRowsPerFile = 6*100; // store a file for each minute (roughly)
+    private int mDataSize = 6000;
 
     private Integer mDisplaySensor = Sensor.TYPE_ACCELEROMETER;
     private long mDisplayDelay = 10000000; // 10,000,000 nanoseconds = 0.1 seconds for display updates
@@ -64,6 +62,10 @@ public class DatabaseThread extends Thread {
         mContext = context;
     }
 
+    public void setDataSize(int dataSize) {
+        mDataSize = dataSize;
+    }
+
     @Override
     public void run() {
         Looper.prepare();
@@ -83,21 +85,20 @@ public class DatabaseThread extends Thread {
                 }
             }
             private void handleLocationMessage(Message msg) {
-                Log.d("database", "Received location message");
+//                Log.d("database", "Received location message");
             }
             private void handleSensorMessage(Message msg) {
                 DataPoint dataPoint = (DataPoint)msg.obj;
-                if ((numRows % 100) == 0) {
-                    Log.d("database", "Received " + numRows + " records. Value: " + dataPoint);
-                }
+//                if ((numRows % 100) == 0) {
+//                    Log.d("database", "Received " + numRows + " records. Value: " + dataPoint);
+//                }
                 if (dataPoint != null) {
                     try {
-                        if (numRows > mRowsPerFile) {
+                        if (numRows > mDataSize) {
                             numRows = 0;
                             if (mCurrentStore != null) {
                                 mCurrentStore.close();
-                                Log.d("database", "Closed file");
-
+//                                Log.d("database", "Closed file");
                             }
                             mCurrentStore = new DataStore(mContext);
                         }

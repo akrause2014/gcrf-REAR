@@ -1,12 +1,12 @@
 package epcc.ed.ac.uk.gcrf_rear;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CheckBox;
 
 import java.io.BufferedInputStream;
@@ -20,7 +20,6 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 
-import epcc.ed.ac.uk.gcrf_rear.view.Settings;
 
 public class UploadDataActivity extends AppCompatActivity {
 
@@ -31,34 +30,26 @@ public class UploadDataActivity extends AppCompatActivity {
     }
 
     public void uploadData(View view) {
-        Log.d("upload", "uploading data");
-        CheckBox btnDeleteData = (CheckBox) findViewById(R.id.delete_upload_checkbox);
-        boolean deleteAfterUpload = btnDeleteData.isChecked();
-        new UploadFile(deleteAfterUpload).execute();
-//        File datadir = new File(getExternalFilesDir(null), "rear");
-//        for (File file : datadir.listFiles()) {
-//            if (file.isFile()) {
-//                Log.d("upload", "Reading file " + file.getName());
-//                uploadFile(file);
-//                try {
-//                    DataInputStream inputStream = new DataInputStream(
-//                            new BufferedInputStream(new FileInputStream(file)));
-//                    while (true) {
-//                        DataPoint dataPoint = DataUpload.readRecord(inputStream);
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
+        SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+        String baseURL = settings.getString(SettingsActivity.DATA_URL, null);
+        String deviceId = settings.getString(SettingsActivity.DEVICE_ID, null);
+        if (baseURL != null && deviceId != null) {
+            String url = baseURL + deviceId + "/sensor";
+            Log.d("upload", "uploading data to " + url);
+            CheckBox btnDeleteData = (CheckBox) findViewById(R.id.delete_upload_checkbox);
+            boolean deleteAfterUpload = btnDeleteData.isChecked();
+            new UploadFile(url, deleteAfterUpload).execute();
+        }
     }
 
     public class UploadFile extends AsyncTask<Void, Void, Void>
     {
         private final boolean deleteAfterUpload;
+        private final String dataURL;
 
-        public UploadFile(boolean deleteAfterUpload) {
+        public UploadFile(String url, boolean deleteAfterUpload) {
             this.deleteAfterUpload = deleteAfterUpload;
+            this.dataURL = url;
         }
 
         @Override
@@ -72,27 +63,42 @@ public class UploadDataActivity extends AppCompatActivity {
                     }
                 }
             }
+            Log.d("upload", "Complete");
             return null;
         }
 
         private boolean uploadFile(File file) {
             try {
-                URL url = new URL(Settings.mURL);
-                HttpURLConnection con = (HttpURLConnection) (new URL(Settings.mURL)).openConnection();
+                Log.d("upload", "opening connection");
+                URL url = new URL(dataURL);
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("POST");
-                con.setDoInput(false);
+                con.setRequestProperty("Content-Type", "application/octet-stream");
+                con.setDoInput(true);
                 con.setDoOutput(true);
                 con.connect();
                 OutputStream outputStream = con.getOutputStream();
                 InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
                 byte[] buf = new byte[2048];
-                int c = 0;
-                while (c >= 0) {
-                    c = inputStream.read(buf);
+                int c;
+                while ((c = inputStream.read(buf)) >= 0) {
                     outputStream.write(buf, 0, c);
                 }
                 inputStream.close();
                 outputStream.close();
+                Log.d("upload", "done");
+                InputStream is = con.getInputStream();
+                if (is != null) {
+                    while (is.read(buf) != -1) {
+//                        Log.d("upload input", new String(buf));
+                    }
+                }
+                InputStream es = con.getErrorStream();
+                if (es != null) {
+                    while (es.read(buf) != -1) {
+//                        Log.d("upload error", new String(buf));
+                    }
+                }
                 return true;
             }
             catch (MalformedURLException e) {

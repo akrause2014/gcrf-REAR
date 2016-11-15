@@ -19,8 +19,10 @@ public class DataStore {
 
     private DataOutputStream mOutputStream;
     private String mFileName;
+    private int mNumRows;
 
     public DataStore(Context context) throws IOException {
+        mNumRows = 0;
         if (isExternalStorageWritable()) {
             mFileName = UUID.randomUUID().toString() + ".dat";
             Log.d("data store", "writing to file: " + mFileName);
@@ -50,7 +52,8 @@ public class DataStore {
             mOutputStream.close();
         }
         finally {
-            Log.d("data store", "closed file: " + mFileName);
+            Log.d("data store", "Closed file: " + mFileName + ". Wrote " + mNumRows + " records.");
+            mNumRows = 0;
             mFileName = null;
         }
     }
@@ -62,6 +65,7 @@ public class DataStore {
         mOutputStream.writeFloat(dataPoint.getX());
         mOutputStream.writeFloat(dataPoint.getY());
         mOutputStream.writeFloat(dataPoint.getZ());
+        mNumRows++;
     }
 
 }
