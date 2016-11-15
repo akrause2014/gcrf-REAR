@@ -27,6 +27,10 @@ public class DataUpload
                                 new File(context.getExternalFilesDir(null), name))));
     }
 
+    public static DataInputStream open(File file) throws FileNotFoundException {
+        return new DataInputStream(
+                new BufferedInputStream(new FileInputStream(file)));
+    }
     public static DataPoint readRecord(DataInputStream inputStream) throws IOException {
         int sensorType = inputStream.read();
         float x = inputStream.readFloat();

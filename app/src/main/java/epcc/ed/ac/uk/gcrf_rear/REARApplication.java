@@ -7,6 +7,8 @@ import android.hardware.SensorEventListener;
 import android.os.Message;
 import android.util.Log;
 
+import java.io.File;
+
 import epcc.ed.ac.uk.gcrf_rear.data.DataPoint;
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
 
@@ -22,6 +24,8 @@ public class REARApplication extends Application implements SensorEventListener 
     public void onCreate() {
         super.onCreate();
         Log.d("oncreate", "database: " + mDatabase);
+        File dir = new File(getExternalFilesDir(null), "rear");
+        dir.mkdir();
         mDatabase = new DatabaseThread();
         mDatabase.setContext(this);
         mDatabase.start();

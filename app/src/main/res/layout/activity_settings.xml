@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:text="Frequency (Hertz)"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView1" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="100"
+        android:id="@+id/frequency_input"
+        android:inputType="number" />
+
+    <TextView
+        android:text="File size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView4" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="60000"
+        android:id="@+id/data_size"
+        android:inputType="number" />
+
+    <TextView
+        android:text="Data upload URL"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView3" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="http://localhost:8080/webapi/data"
+        android:id="@+id/data_url_input"
+        android:inputType="textUri" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:text="Save"
+            android:onClick="saveSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/settings_ok_button"
+            android:layout_weight="1" />
+
+        <Button
+            android:text="Cancel"
+            android:onClick="cancelSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/settings_cancel_button"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+</LinearLayout>

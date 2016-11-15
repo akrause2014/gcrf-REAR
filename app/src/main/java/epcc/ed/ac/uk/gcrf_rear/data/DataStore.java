@@ -23,7 +23,7 @@ public class DataStore {
         if (isExternalStorageWritable()) {
             mFileName = "data-" + count + ".dat";
             Log.d("data store", "writing to file: " + mFileName);
-            openFile(context.getExternalFilesDir(null), mFileName);
+            openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
         }
         else {
             throw new IOException("Problem creating data store: External file storage is not writable");
@@ -55,11 +55,12 @@ public class DataStore {
     }
 
     public void writeRecord(DataPoint dataPoint) throws IOException {
-        mOutputStream.write(dataPoint.sensorAsByte());
+        mOutputStream.writeByte(dataPoint.getVersion());
+        mOutputStream.writeByte(dataPoint.sensorAsByte());
+        mOutputStream.writeLong(dataPoint.getTimestamp());
         mOutputStream.writeFloat(dataPoint.getX());
         mOutputStream.writeFloat(dataPoint.getY());
         mOutputStream.writeFloat(dataPoint.getZ());
-        mOutputStream.writeLong(dataPoint.getTimestamp());
     }
 
 }

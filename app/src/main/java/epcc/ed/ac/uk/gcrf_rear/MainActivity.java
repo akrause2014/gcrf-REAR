@@ -94,13 +94,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_upload_data:
+            case R.id.menu_upload_data: {
                 Log.d("menu", "Upload data selected");
                 Intent intent = new Intent(this, UploadDataActivity.class);
                 this.startActivity(intent);
                 return true;
-            case R.id.menu_settings:
+            }
+            case R.id.menu_settings: {
+                Log.d("menu", "Settings selected");
+                Intent intent = new Intent(this, SettingsActivity.class);
+                this.startActivity(intent);
                 return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
         }

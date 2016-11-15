@@ -24,6 +24,12 @@
             android:id="@+id/textView"
             android:textSize="24sp" />
 
+        <CheckBox
+            android:text="Delete after upload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/delete_upload_checkbox" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

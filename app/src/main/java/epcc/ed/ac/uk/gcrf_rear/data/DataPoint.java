@@ -1,7 +1,6 @@
 package epcc.ed.ac.uk.gcrf_rear.data;
 
 import android.hardware.Sensor;
-import android.hardware.SensorManager;
 
 /**
  * Created by akrause on 09/11/2016.
@@ -9,12 +8,12 @@ import android.hardware.SensorManager;
 
 public class DataPoint
 {
+    private final int version = 1;
     private float x;
     private float y;
     private float z;
-    private long timestamp;
+    private final long timestamp;
     private int sensorType;
-    private String tableName;
 
     public DataPoint(long timestamp, float[] values, int sensorType) {
         this(timestamp, values[0], values[1], values[2], sensorType);
@@ -35,6 +34,10 @@ public class DataPoint
         this.y = y;
         this.z = z;
         this.sensorType = sensorType;
+    }
+
+    public int getVersion() {
+        return version;
     }
 
     public float getX() {
@@ -68,10 +71,6 @@ public class DataPoint
             default:
                 return -1;
         }
-    }
-
-    public String getTableName() {
-        return tableName;
     }
 
     @Override
