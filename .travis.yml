@@ -11,6 +11,7 @@ android:
   - sys-img-x86-android-10
 script:
 - ./gradlew clean build connectedAndroidTest -PdisablePreDex --stacktrace
+- ./gradlew assembleRelease
 deploy:
   provider: releases
   api_key:
