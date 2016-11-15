@@ -11,5 +11,9 @@ android:
   - android-25
   - extra
 
+  # Specify at least one system image,
+  # if you need to run emulator(s) during your tests
+  - sys-img-x86-android-10
+
 script:
 - "./gradlew clean build connectedAndroidTest -PdisablePreDex --stacktrace"
