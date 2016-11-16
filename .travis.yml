@@ -22,7 +22,7 @@ env:
 
 before_deploy:
 - cp $TRAVIS_BUILD_DIR/.keystore $HOME
-- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/app-release-unsigned.apk app -keystore $HOME/.keystore -storepass $storepass -keypass $keypass
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/app-release-unsigned.apk androidkey -keystore $HOME/.keystore -storepass $storepass -keypass $keypass
 - "${ANDROID_HOME}/build-tools/25.0.0/zipalign 4 app/build/outputs/apk/app-release-unsigned.apk app/build/outputs/apk/app-release.apk"
 
 deploy:
