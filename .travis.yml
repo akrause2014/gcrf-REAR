@@ -11,11 +11,25 @@ android:
   - sys-img-x86-android-10
 script:
 - ./gradlew clean build connectedAndroidTest -PdisablePreDex --stacktrace
-#deploy:
-#  provider: releases
-#  api_key:
-#    secure: CPF6KnullDmHLD/dq0xzjtSkcRAjwW9U8+RohHoyKhe1EyVcG8fpjKosq/VZzF+K99cYbkt13ip7sDH8mNKlXdE/WgGl9p2eGeJNT4NV/1axgvg5JxQYfZgj4pgInaZlZOsoBTbFtREo/U9DYbNxW8Q3gIVTqg4uuZXkNuZEQa5vMoJO3OlLVXS3qUP+sj9HE8HrQ4C7ncyTukfD7QJOpZIpF7hPa2MUlBHEbX8b+oIHJTIWBvCfuHtXYpA5yuzF8wzbV5UK25Peu83AMNMp9z7RDzuEjLbAbQ/HUM/tA12KTyLyZOfiKsQRcYdgvQ3k4Kp1zVMhusO8qCe9wKHC83ZjobB+5YluH1frsWclCsR7Iz4lvwtTVb9xSUhsjFdyE/+1vQjDCJ12/FfhgHX0KUkJR8amQN37ajqqiAgHVU8E3VjRG/fVOSLogVvR4ER9kkUdRpb26cvEDjxTbLqGlYIWA9s/LpVoKwIiCnNJEGn62qAgWx6E1GzW8hZNDZ8RuMfaxpvUMpwu3Nq6VkpKZ00ouWMhi1MlAfS5t5hxJlvKWw6J9c2Ewx1fpdBktFjPvlgBv21AQ1KUmlWGg3GADt02gf9t5jxiipQ/KBvxYDuZsSLcXlmBL2D6iLDJK6IKlxjsCthEI1pYMFGG8VFlCBwXXXVyNzfsqx8QITsqSXE=
-#  file: app/build/outputs/apk/app*release*.apk
-#  skip_cleanup: true
-#  on:
-#    repo: akrause2014/gcrf-REAR
+- ./gradlew assemble
+before_install:
+- openssl aes-256-cbc -K $encrypted_a3bdb1b12b69_key -iv $encrypted_a3bdb1b12b69_iv
+  -in .keystore.enc -out .keystore -d
+env:
+  global:
+  - secure: yAM7EQDC4rWRDKnI6oQ3Ns0xFGoPJ0kMwFgcxdTpYZy23wqqv/QEv3t2JmedUL2BlE0HUncs5ext7aqPI92S3gA5zQJXResOOJ/QZlCJfGncT997v0j/dRG0aIb2la3oBYio2WSQv4QWOkgiy2vd4eQF/lb4c981zitlF6MSF4OKnGkud76RgWc3MENd4aRHVdS2l8A2rbFMdFyifIrbP7msHRgCY3dJvDXaDZOP14+YF98HPxAjGTBZFNztSYblkGrLoZ8TzAzzrIpWyMlBZWuShXD6EEgbQEKwMha7YgokikEtGVmdGJk/8LDFGZCmWPo55crGMwccIKHqP+D7GJ8L1Zh6kzDgpDw6C123XkxZ+PUB7WGu6rRdabxdERMShfVVQ02Dp/ybWuE6Xa7Yl9pfz5p+21WxIVxyP+BiZNVGKF3pqaFgnzgxDiFDsWwxVtSFqvbsNwN4RQQSnnrFC1lt5dSwCyx2hEOnn1XBgj31N3bL2RWgCT4HU6bTptv3HrI7zc/eXUUC0LDvlQ2x4zNte672i50KpY9gIl+GUxTpT4zz/nGODHAWFQCkRYAZn3qKe9EmSXugf9B7R/DZsa/5jobRCy+uFDbGmDBSh2MPwxtuE83oKCbQV3ojWH2cCShOxkaipfQiZ1DlcROTBVqkJQCZC645kpVkQf/iORs=
+  - secure: dMma5M7MhmYGr+3i8x0vKrP/scQefDWHmWcapf5usMx0kK79EjM4M0xiu8aO5nDfh0002bcq3uC/E22qklwJLW49NsejJmhUAmgvxujTSYUOXa80lssXka3npYovb8xoZhodMceNoclVesYXCrEKmcU5L8KRg274vyBL7Tf9AmG5a+zvmeHUgalIzqoRXNk08IUTuKa2IwT0VqUexLP0p84zQxN2szR1FS6XW0CE6Au8uZY7fe59LRbg05SwdxHAS/8rFiB0SCtX84TLJUJ62WKem37WkNZVFh8vjL4gcjIOWtnYeTz2NKKKnN1KKlHekjpbRQaY/+9JlKtrXyidmRnPamm/JWbuhCBAe+lBI42oy05y+2gBUTHZwhzDPug6W2dTwR2KYKHEgRL0EXZ/CW5EOmjgmphLkJuuV1j3WtZN7+Bt1th+Gki/OfzG22YMxDxixz0lngXoSUYfenewocvsaGboxHbdKidHjFp6jgm3HlfZbcs/HqMh+/rEnf2mXDcviglJmcT81mrfQI8vKsSf88PtiGTeKmEiiXvb04pe8NVi5ZfdkCwy4WudxODVtoGFakNJuntOwcx1p1CuOxAoTm6smziLFRiQX9MkmBMWiaHE8Qtn3F73DUC2YfpnOAc76teInnJHzDTJ8JLfJ1pyDwvs06wp7OEwviMy1ZA=
+
+before_deploy:
+- cp $TRAVIS_BUILD_DIR/.keystore $HOME
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/app-release-unsigned.apk app -keystore $HOME/.keystore -storepass $storepass -keypass $keypass
+- "${ANDROID_HOME}/build-tools/25.0.0/zipalign 4 app/build/outputs/apk/app-release-unsigned.apk app/build/outputs/apk/app-release.apk"
+
+deploy:
+  provider: releases
+  api_key:
+    secure: CPF6KnullDmHLD/dq0xzjtSkcRAjwW9U8+RohHoyKhe1EyVcG8fpjKosq/VZzF+K99cYbkt13ip7sDH8mNKlXdE/WgGl9p2eGeJNT4NV/1axgvg5JxQYfZgj4pgInaZlZOsoBTbFtREo/U9DYbNxW8Q3gIVTqg4uuZXkNuZEQa5vMoJO3OlLVXS3qUP+sj9HE8HrQ4C7ncyTukfD7QJOpZIpF7hPa2MUlBHEbX8b+oIHJTIWBvCfuHtXYpA5yuzF8wzbV5UK25Peu83AMNMp9z7RDzuEjLbAbQ/HUM/tA12KTyLyZOfiKsQRcYdgvQ3k4Kp1zVMhusO8qCe9wKHC83ZjobB+5YluH1frsWclCsR7Iz4lvwtTVb9xSUhsjFdyE/+1vQjDCJ12/FfhgHX0KUkJR8amQN37ajqqiAgHVU8E3VjRG/fVOSLogVvR4ER9kkUdRpb26cvEDjxTbLqGlYIWA9s/LpVoKwIiCnNJEGn62qAgWx6E1GzW8hZNDZ8RuMfaxpvUMpwu3Nq6VkpKZ00ouWMhi1MlAfS5t5hxJlvKWw6J9c2Ewx1fpdBktFjPvlgBv21AQ1KUmlWGg3GADt02gf9t5jxiipQ/KBvxYDuZsSLcXlmBL2D6iLDJK6IKlxjsCthEI1pYMFGG8VFlCBwXXXVyNzfsqx8QITsqSXE=
+  file: app/build/outputs/apk/app-release.apk
+  skip_cleanup: true
+  on:
+    repo: akrause2014/gcrf-REAR
