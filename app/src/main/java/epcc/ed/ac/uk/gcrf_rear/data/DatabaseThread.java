@@ -1,7 +1,6 @@
 package epcc.ed.ac.uk.gcrf_rear.data;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;

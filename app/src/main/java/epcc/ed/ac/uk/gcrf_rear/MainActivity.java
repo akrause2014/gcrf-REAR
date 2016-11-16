@@ -1,7 +1,9 @@
 package epcc.ed.ac.uk.gcrf_rear;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
@@ -9,13 +11,25 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Message;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.PasswordTransformationMethod;
+import android.util.Base64;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ToggleButton;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
 import epcc.ed.ac.uk.gcrf_rear.view.DataSurfaceView;
@@ -91,6 +105,65 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         return true;
     }
 
+    private void registerDevice(String password) {
+        String message = "Device registration failed.";
+        try
+        {
+            URL url = new URL("http://129.215.213.252:8080/gcrfREAR/webapi/gcrf-REAR/register");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.addRequestProperty("Authorization", "Basic " +
+                    Base64.encodeToString(("gcrf-REAR:" + password).getBytes(), Base64.NO_WRAP));
+            conn.connect();
+            conn.getOutputStream().close();
+            int status = conn.getResponseCode();
+            Log.d("register", "Register returned status: " + status);
+            if (status == 200) {
+                InputStream inputStream = conn.getInputStream();
+                byte[] buf = new byte[1024];
+                StringBuilder builder = new StringBuilder();
+                int l;
+                while ((l = inputStream.read(buf)) != -1) {
+                    builder.append(new String(buf, 0, l));
+                }
+                inputStream.close();
+                Log.d("register", "registered with device id: " + builder.toString());
+                String deviceID = builder.toString();
+                SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(SettingsActivity.DEVICE_ID, deviceID);
+                editor.commit();
+
+                AlertDialog.Builder alert = new AlertDialog.Builder(this);
+                alert.setTitle("Register Device");
+                alert.setMessage("Device was registered successfully.");
+                AlertDialog alertDialog = alert.create();
+                alertDialog.show();
+                return;
+            }
+            else {
+                if (status == 401) {
+                    message += " Unauthorised";
+                }
+            }
+
+        } catch (MalformedURLException e) {
+            Log.d("register", "failed to create URL", e);
+        } catch (ProtocolException e) {
+            Log.d("register", "failed to store preference", e);
+        } catch (IOException e) {
+            Log.d("register", "failed to register", e);
+        }
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Register Device");
+        alert.setMessage(message);
+        AlertDialog alertDialog = alert.create();
+        alertDialog.show();
+
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -98,6 +171,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Log.d("menu", "Upload data selected");
                 Intent intent = new Intent(this, UploadDataActivity.class);
                 this.startActivity(intent);
+                return true;
+            }
+            case R.id.menu_register: {
+                Log.d("menu", "Register device selected");
+
+                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+                alert.setTitle("Register Device");
+                alert.setMessage("Enter password:");
+
+                final EditText input = new EditText(MainActivity.this);
+                input.setTransformationMethod(new PasswordTransformationMethod());
+                alert.setView(input);
+
+                alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String password = input.getEditableText().toString();
+                        MainActivity.this.registerDevice(password);
+                    }
+                });
+                alert.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        dialog.cancel();
+                    }
+                });
+                AlertDialog alertDialog = alert.create();
+                alertDialog.show();
                 return true;
             }
             case R.id.menu_settings: {

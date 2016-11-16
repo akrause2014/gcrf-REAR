@@ -53,6 +53,17 @@ public class UploadDataActivity extends AppCompatActivity {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            findViewById(R.id.delete_upload_checkbox);
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+
+        @Override
         protected Void doInBackground(Void... voids) {
             File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
             for (File file : datadir.listFiles()) {

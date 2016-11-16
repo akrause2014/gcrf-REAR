@@ -24,7 +24,7 @@ public class SettingsActivity extends AppCompatActivity {
         EditText urlInput = (EditText) findViewById(R.id.data_url_input);
         urlInput.setText(settings.getString(DATA_URL, DEFAULT_DATA_URL));
         EditText deviceIdInput = (EditText) findViewById(R.id.device_id_input);
-        deviceIdInput.setText(settings.getString(DEVICE_ID, "3B9FC8C2E3724EA2B13EBB31B4598CD9"));
+        deviceIdInput.setText(settings.getString(DEVICE_ID, ""));
         EditText dataSizeInput = (EditText) findViewById(R.id.data_size);
         dataSizeInput.setText(String.valueOf(settings.getInt(DATA_SIZE, 6000)));
         EditText freqInput = (EditText) findViewById(R.id.frequency_input);
@@ -54,4 +54,5 @@ public class SettingsActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
+
 }
