@@ -25,10 +25,20 @@ import java.net.URL;
 
 public class UploadDataActivity extends AppCompatActivity {
 
+    private int filesAvailable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_data);
+        File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+        for (File file : datadir.listFiles()) {
+            if (file.isFile()) {
+                filesAvailable++;
+            }
+        }
+        TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
+        progressText.setText("Number of data files: " + filesAvailable);
     }
 
     public void uploadData(View view) {
@@ -40,18 +50,20 @@ public class UploadDataActivity extends AppCompatActivity {
             Log.d("upload", "uploading data to " + url);
             CheckBox btnDeleteData = (CheckBox) findViewById(R.id.delete_upload_checkbox);
             boolean deleteAfterUpload = btnDeleteData.isChecked();
-            new UploadFile(url, deleteAfterUpload).execute();
+            new UploadFile(url, deleteAfterUpload, filesAvailable).execute();
         }
     }
 
-    public class UploadFile extends AsyncTask<Void, Void, Void>
+    public class UploadFile extends AsyncTask<Void, Integer, Integer>
     {
         private final boolean deleteAfterUpload;
         private final String dataURL;
+        private int filesAvailable;
 
-        public UploadFile(String url, boolean deleteAfterUpload) {
+        public UploadFile(String url, boolean deleteAfterUpload, int filesAvailable) {
             this.deleteAfterUpload = deleteAfterUpload;
             this.dataURL = url;
+            this.filesAvailable = filesAvailable;
         }
 
         @Override
@@ -60,34 +72,47 @@ public class UploadDataActivity extends AppCompatActivity {
             findViewById(R.id.upload_ok_button).setVisibility(View.INVISIBLE);
             findViewById(R.id.upload_cancel_button).setVisibility(View.INVISIBLE);
             TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
-            progressText.setText("Uploading data ...");
+            progressText.setText("Uploading data ... Files: 0/" + filesAvailable);
             ProgressBar progressBar = (ProgressBar)findViewById(R.id.upload_data_progress_bar);
+            progressBar.setMax(filesAvailable);
             progressBar.setVisibility(View.VISIBLE);
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+        protected void onProgressUpdate(Integer... values) {
             TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
-            progressText.setText("Data upload complete.");
+            progressText.setText("Uploading data ... Files: " + values[0] + "/" + filesAvailable);
             ProgressBar progressBar = (ProgressBar)findViewById(R.id.upload_data_progress_bar);
-            progressBar.setVisibility(View.INVISIBLE);
+            progressBar.setProgress(values[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Integer numFiles) {
+            TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
+            progressText.setText("Complete. Uploaded " + numFiles + "/" + filesAvailable + " files");
+//            ProgressBar progressBar = (ProgressBar)findViewById(R.id.upload_data_progress_bar);
+//            progressBar.setVisibility(View.INVISIBLE);
             findViewById(R.id.upload_close_button).setVisibility(View.VISIBLE);
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Integer doInBackground(Void... voids) {
             File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+            int numFiles = 0;
             for (File file : datadir.listFiles()) {
                 if (file.isFile()) {
                     Log.d("upload", "Reading file " + file.getName());
-                    if (uploadFile(file) && deleteAfterUpload) {
-                        file.delete();
+                    if (uploadFile(file)) {
+                        numFiles++;
+                        publishProgress(numFiles);
+                        if (deleteAfterUpload) {
+                            file.delete();
+                        }
                     }
                 }
             }
             Log.d("upload", "Complete");
-            return null;
+            return numFiles;
         }
 
         private boolean uploadFile(File file) {
