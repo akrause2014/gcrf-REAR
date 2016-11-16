@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -55,12 +57,22 @@ public class UploadDataActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            findViewById(R.id.delete_upload_checkbox);
+            findViewById(R.id.upload_ok_button).setVisibility(View.INVISIBLE);
+            findViewById(R.id.upload_cancel_button).setVisibility(View.INVISIBLE);
+            TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
+            progressText.setText("Uploading data ...");
+            ProgressBar progressBar = (ProgressBar)findViewById(R.id.upload_data_progress_bar);
+            progressBar.setVisibility(View.VISIBLE);
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
+            progressText.setText("Data upload complete.");
+            ProgressBar progressBar = (ProgressBar)findViewById(R.id.upload_data_progress_bar);
+            progressBar.setVisibility(View.INVISIBLE);
+            findViewById(R.id.upload_close_button).setVisibility(View.VISIBLE);
         }
 
         @Override
