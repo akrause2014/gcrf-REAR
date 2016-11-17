@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Base64;
 import android.util.Log;
-import android.util.StringBuilderPrinter;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
@@ -39,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private DatabaseThread mDatabase;
     private DataSurfaceView mDataView;
     private LocationManager mLocationManager;
-    private int mSamplingRate = 10;
+    private int mSamplingPeriod = 100;
 
 
     @Override
@@ -49,28 +48,34 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         mDatabase = ((REARApplication)getApplication()).getDatabase();
         mDataView = (DataSurfaceView) findViewById(R.id.data_view_id);
         mDataView.setDatabaseThread(mDatabase);
+        SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+        int rate = settings.getInt(SettingsActivity.FREQUENCY, 100);
+        if (rate > 0) {
+            mSamplingPeriod = 1000 / rate;
+        }
 
         ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
+                    Log.d("main", "sampling period: " + mSamplingPeriod + "ms");
                     SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
                     Sensor senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
                     if (senAccelerometer != null) {
                         // Register accelerometer listener with sampling rate 100Hz
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senAccelerometer, mSamplingRate);
+                        sensorManager.registerListener((SensorEventListener) getApplication(), senAccelerometer, mSamplingPeriod);
                         Log.d("main", "registered listener for accelerometer");
                     }
                     Sensor senGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
                     if (senGyroscope != null) {
                         // Register gyroscope listener with sampling rate 100Hz
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senGyroscope, mSamplingRate);
+                        sensorManager.registerListener((SensorEventListener) getApplication(), senGyroscope, mSamplingPeriod);
                         Log.d("main", "registered listener for gyroscope");
                     }
                     Sensor senMagneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
                     if (senMagneticField != null) {
                         // Register magnetic field listener with sampling rate 100Hz
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, mSamplingRate);
+                        sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, mSamplingPeriod);
                         Log.d("main", "registered listener for magnetic field");
                     }
 //                    mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);

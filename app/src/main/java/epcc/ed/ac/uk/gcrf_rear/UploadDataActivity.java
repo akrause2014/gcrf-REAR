@@ -17,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -90,8 +91,6 @@ public class UploadDataActivity extends AppCompatActivity {
         protected void onPostExecute(Integer numFiles) {
             TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
             progressText.setText("Complete. Uploaded " + numFiles + "/" + filesAvailable + " files");
-//            ProgressBar progressBar = (ProgressBar)findViewById(R.id.upload_data_progress_bar);
-//            progressBar.setVisibility(View.INVISIBLE);
             findViewById(R.id.upload_close_button).setVisibility(View.VISIBLE);
         }
 
@@ -153,6 +152,8 @@ public class UploadDataActivity extends AppCompatActivity {
                 Log.e("upload", "malformed URL", e);
             } catch (ProtocolException e) {
                 Log.e("upload", "error", e);
+            } catch (ConnectException e) {
+                Log.e("upload", "no connection", e);
             } catch (IOException e) {
                 Log.e("upload", "error", e);
             }

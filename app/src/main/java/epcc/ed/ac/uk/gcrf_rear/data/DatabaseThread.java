@@ -62,7 +62,10 @@ public class DatabaseThread extends Thread {
     }
 
     public void setDataSize(int dataSize) {
-        mDataSize = dataSize;
+        if (dataSize > 0) {
+            Log.d("database", "set file size to: " + dataSize);
+            mDataSize = dataSize;
+        }
     }
 
     @Override

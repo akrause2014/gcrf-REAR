@@ -34,16 +34,34 @@ public class SettingsActivity extends AppCompatActivity {
     public void saveSettings(View view) {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
+
         EditText urlInput = (EditText) findViewById(R.id.data_url_input);
         editor.putString(DATA_URL, urlInput.getText().toString());
         EditText deviceIdInput = (EditText) findViewById(R.id.device_id_input);
         editor.putString(DEVICE_ID, deviceIdInput.getText().toString());
+
         EditText dataSizeInput = (EditText) findViewById(R.id.data_size);
-        int dataSize = Integer.parseInt(dataSizeInput.getText().toString());
-        ((REARApplication)getApplication()).getDatabase().setDataSize(dataSize);
-        editor.putInt(DATA_SIZE, dataSize);
+        try {
+            int dataSize = Integer.parseInt(dataSizeInput.getText().toString());
+            if (dataSize > 0) {
+                editor.putInt(DATA_SIZE, dataSize);
+                ((REARApplication)getApplication()).getDatabase().setDataSize(dataSize);
+            }
+        }
+        catch (NumberFormatException e) {
+            // ignore if not an integer
+        }
+
         EditText freqInput = (EditText) findViewById(R.id.frequency_input);
-        editor.putInt(FREQUENCY, Integer.parseInt(freqInput.getText().toString()));
+        try {
+            int rate = Integer.parseInt(freqInput.getText().toString());
+            if (rate > 0) {
+                editor.putInt(FREQUENCY, rate);
+            }
+        }
+        catch (NumberFormatException e) {
+            // ignore if not an integer
+        }
         editor.commit();
 
         Intent intent = new Intent(this, MainActivity.class);
