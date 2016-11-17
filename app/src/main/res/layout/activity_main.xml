@@ -19,11 +19,42 @@
             android:textSize="24sp"
             android:textStyle="normal|bold" />
 
+        <CheckBox
+            android:text="Accelerometer"
+            android:checked="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/track_accel_checkBox"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:text="Gyroscope"
+            android:checked="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/track_gyro_checkBox"
+            android:layout_weight="1" />
+
+        <CheckBox
+            android:text="Magnetometer"
+            android:checked="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/track_magnet_checkBox"
+            android:layout_weight="1" />
+
         <ToggleButton
             android:text="ToggleButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/toggleButton"
+            android:layout_weight="1" />
+
+        <TextView
+            android:text=""
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/main_frequency_text"
             android:layout_weight="1" />
 
     </LinearLayout>

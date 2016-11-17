@@ -175,7 +175,9 @@ public class DatabaseThread extends Thread {
 
     public void close() {
         try {
-            mCurrentStore.close();
+            if (mCurrentStore != null) {
+                mCurrentStore.close();
+            }
         } catch (IOException e) {
             Log.e("database", "error closing data file", e);
         }
