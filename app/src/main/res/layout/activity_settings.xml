@@ -74,6 +74,13 @@
             android:layout_height="wrap_content"
             android:id="@+id/settings_cancel_button"
             android:layout_weight="1" />
+
     </LinearLayout>
 
+    <Button
+        android:text="Delete Data"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/setting_delete_data_button"
+        android:layout_weight="1" />
 </LinearLayout>

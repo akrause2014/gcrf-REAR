@@ -30,6 +30,7 @@ public class DatabaseThread extends Thread {
 
     private DataStore mCurrentStore;
     private int mDataSize = 6000;
+    private boolean mFileStoreOn = false;
 
     private Integer mDisplaySensor = Sensor.TYPE_ACCELEROMETER;
     private long mDisplayDelay = 10000000; // 10,000,000 nanoseconds = 0.1 seconds for display updates
@@ -95,33 +96,33 @@ public class DatabaseThread extends Thread {
 //                    Log.d("database", "Received " + numRows + " records. Value: " + dataPoint);
 //                }
                 if (dataPoint != null) {
-                    try {
-                        if (numRows > mDataSize) {
-                            numRows = 0;
-                            if (mCurrentStore != null) {
+                    if (mFileStoreOn) {
+                        try {
+                            if (mCurrentStore == null) {
+                                mCurrentStore = new DataStore(mContext);
+                            } else if (numRows > mDataSize) {
+                                numRows = 0;
                                 mCurrentStore.close();
-//                                Log.d("database", "Closed file");
+                                mCurrentStore = new DataStore(mContext);
                             }
-                            mCurrentStore = new DataStore(mContext);
-                        }
-                        if (mCurrentStore == null) {
-                            mCurrentStore = new DataStore(mContext);
-                        }
 
-                        if (mCurrentStore != null) {
-                            mCurrentStore.writeRecord(dataPoint);
-                        }
-                    } catch (IOException e) {
-                        Log.e("database", "error writing data", e);
-                    }
-                    long ts = dataPoint.getTimestamp();
-                    if (mDisplayOn && dataPoint.getSensorType() == mDisplaySensor) {
-                        mDataPoints.add(dataPoint);
-                        if ((ts - prevTs) > mDisplayDelay) {
-                            drawGraph();
+                            if (mCurrentStore != null) {
+                                mCurrentStore.writeRecord(dataPoint);
+                            }
+                        } catch (IOException e) {
+                            Log.e("database", "error writing data", e);
                         }
                     }
-                    prevTs = ts;
+                    if (mDisplayOn) {
+                        long ts = dataPoint.getTimestamp();
+                        if (dataPoint.getSensorType() == mDisplaySensor) {
+                            mDataPoints.add(dataPoint);
+                            if ((ts - prevTs) > mDisplayDelay) {
+                                drawGraph();
+                            }
+                        }
+                        prevTs = ts;
+                    }
                 }
 
             }
@@ -131,8 +132,9 @@ public class DatabaseThread extends Thread {
 
     private void drawGraph()
     {
-        if (surfaceHolder == null) return;
-        Canvas canvas = surfaceHolder.lockCanvas();
+        SurfaceHolder sh = surfaceHolder;
+        if (sh == null) return;
+        Canvas canvas = sh.lockCanvas();
         canvas.drawColor(Color.WHITE);
         Paint paintLine = new Paint();
         paintLine.setColor(Color.BLACK);
@@ -167,7 +169,7 @@ public class DatabaseThread extends Thread {
             i++;
             prev = dp;
         }
-        surfaceHolder.unlockCanvasAndPost(canvas);
+        sh.unlockCanvasAndPost(canvas);
 
     }
 
@@ -182,12 +184,16 @@ public class DatabaseThread extends Thread {
         }
     }
 
-    public void displaySensor(int sensorType) {
+    public void setDisplaySensor(int sensorType) {
         mDisplaySensor = sensorType;
         mDataPoints.clear();
     }
 
     public void setDisplayOn(boolean displayOn) {
         mDisplayOn = displayOn;
+    }
+
+    public void setFileStoreOn(boolean fileStoreOn) {
+        mFileStoreOn = fileStoreOn;
     }
 }

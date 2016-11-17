@@ -25,7 +25,7 @@ public class DataStore {
         mNumRows = 0;
         if (isExternalStorageWritable()) {
             mFileName = UUID.randomUUID().toString() + ".dat";
-            Log.d("data store", "writing to file: " + mFileName);
+            Log.d("data store", "opening file: " + mFileName);
             openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
         }
         else {

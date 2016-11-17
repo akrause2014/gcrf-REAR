@@ -21,6 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".UploadDataActivity"></activity>
+        <activity android:name=".SensorTestActivity"></activity>
         <activity android:name=".SettingsActivity"></activity>
     </application>
 

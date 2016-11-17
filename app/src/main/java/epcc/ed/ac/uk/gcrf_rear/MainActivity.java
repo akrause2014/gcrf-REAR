@@ -31,14 +31,11 @@ import java.net.ProtocolException;
 import java.net.URL;
 
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
-import epcc.ed.ac.uk.gcrf_rear.view.DataSurfaceView;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
     private DatabaseThread mDatabase;
-    private DataSurfaceView mDataView;
     private LocationManager mLocationManager;
-    private int mSamplingPeriod = 100;
 
 
     @Override
@@ -46,36 +43,36 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mDatabase = ((REARApplication)getApplication()).getDatabase();
-        mDataView = (DataSurfaceView) findViewById(R.id.data_view_id);
-        mDataView.setDatabaseThread(mDatabase);
         SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
         int rate = settings.getInt(SettingsActivity.FREQUENCY, 100);
+        final int samplingPeriod;
         if (rate > 0) {
-            mSamplingPeriod = 1000 / rate;
+            samplingPeriod = 1000000 / rate;
+        }
+        else {
+            samplingPeriod = 10000; // rate of 100 Hertz i.e. sampling period 10,000 microseconds
         }
 
         ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    Log.d("main", "sampling period: " + mSamplingPeriod + "ms");
+                    Log.d("main", "sampling period: " + samplingPeriod + "microseconds");
+                    mDatabase.setFileStoreOn(true);
                     SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
                     Sensor senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
                     if (senAccelerometer != null) {
-                        // Register accelerometer listener with sampling rate 100Hz
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senAccelerometer, mSamplingPeriod);
+                        sensorManager.registerListener((SensorEventListener) getApplication(), senAccelerometer, samplingPeriod);
                         Log.d("main", "registered listener for accelerometer");
                     }
                     Sensor senGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
                     if (senGyroscope != null) {
-                        // Register gyroscope listener with sampling rate 100Hz
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senGyroscope, mSamplingPeriod);
+                        sensorManager.registerListener((SensorEventListener) getApplication(), senGyroscope, samplingPeriod);
                         Log.d("main", "registered listener for gyroscope");
                     }
                     Sensor senMagneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
                     if (senMagneticField != null) {
-                        // Register magnetic field listener with sampling rate 100Hz
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, mSamplingPeriod);
+                        sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, samplingPeriod);
                         Log.d("main", "registered listener for magnetic field");
                     }
 //                    mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -89,17 +86,30 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 } else {
                     SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
                     sensorManager.unregisterListener((SensorEventListener) getApplication());
+                    mDatabase.setFileStoreOn(false);
                     mDatabase.close();
                 }
             }
         });
 
-        ToggleButton displayToggle = (ToggleButton) findViewById(R.id.displayToggleButton);
-        displayToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mDatabase.setDisplayOn(isChecked);
-            }
-        });
+//        ToggleButton displayToggle = (ToggleButton) findViewById(R.id.displayToggleButton);
+//        displayToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if (isChecked) {
+//                    SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+//                    Sensor senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+//                    if (senAccelerometer != null) {
+//                        sensorManager.registerListener((SensorEventListener) getApplication(), senAccelerometer, mSamplingPeriod);
+//                        Log.d("main", "registered listener for accelerometer");
+//                    }
+//                }
+//                else {
+//                    SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+//                    sensorManager.unregisterListener((SensorEventListener) getApplication());
+//                }
+//                ((REARApplication) getApplication()).getDatabase().setDisplayOn(isChecked);
+//            }
+//        });
 
     }
 
@@ -172,6 +182,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_display: {
+                Log.d("menu", "Test display selected");
+                Intent intent = new Intent(this, SensorTestActivity.class);
+                this.startActivity(intent);
+                return true;
+            }
             case R.id.menu_upload_data: {
                 Log.d("menu", "Upload data selected");
                 Intent intent = new Intent(this, UploadDataActivity.class);
