@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         final int samplingPeriod = 1000000 / rate;
         TextView freqText = (TextView)findViewById(R.id.main_frequency_text);
         freqText.setText("Frequency: " + rate + " Hertz");
+        final TextView sensorTextView = (TextView) findViewById(R.id.sensorTextView);
         final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         final Sensor senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         final Sensor senGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -87,18 +88,37 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, samplingPeriod);
                         Log.d("main", "registered listener for magnetic field");
                     }
-//                    mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-//                    try {
-//                        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0l, 0f, MainActivity.this);
-//                    }
-//                    catch (SecurityException e) {
-//                        // check permissions
-//                    }
+                    mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                    try {
+                        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0l, 0f, MainActivity.this);
+                        Log.d("main", "registered listener for GPS");
+                        Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        if (location != null) {
+                            Log.d("location",
+                                    "Lat/Lon: " + location.getLatitude() + "," + location.getLongitude()
+                                            + "\nAccuracy: " + location.getAccuracy()
+                                            + "\nAltitude: " + location.getAltitude());
+                        }
+                        else {
+                            sensorTextView.setText("No GPS location available.\nLat/Lon: ---/---");
+                        }
+                    }
+                    catch (SecurityException e) {
+                        // check permissions
+                        Log.e("main", "failed to register location listener", e);
+                    }
 
                 } else {
                     sensorManager.unregisterListener((SensorEventListener) getApplication());
+                    try {
+                        mLocationManager.removeUpdates(MainActivity.this);
+                    }
+                    catch (SecurityException e) {
+                        // check permissions
+                    }
                     mDatabase.setFileStoreOn(false);
                     mDatabase.close();
+                    sensorTextView.setText("");
                 }
             }
         });
@@ -270,10 +290,31 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onLocationChanged(Location location) {
-        Message msg = new Message();
-        msg.arg1 = DatabaseThread.LOCATION_MSG;
-        msg.obj = location;
-        mDatabase.mHandler.sendMessage(msg);
+        if (location.getAccuracy() < 10.0) {
+            TextView sensorTextView = (TextView) findViewById(R.id.sensorTextView);
+            sensorTextView.setText("GPS location available:\nLon/Lat: "
+                    + location.getLongitude() + "," + location.getLatitude());
+            try {
+                mLocationManager.removeUpdates(MainActivity.this);
+                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 25, MainActivity.this);
+            }
+            catch (SecurityException e) {
+                // check permissions
+            }
+            Message msg = new Message();
+            msg.arg1 = DatabaseThread.LOCATION_MSG;
+            msg.obj = location;
+            mDatabase.mHandler.sendMessage(msg);
+        }
+        else {
+            try {
+                mLocationManager.removeUpdates(MainActivity.this);
+                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, MainActivity.this);
+            }
+            catch (SecurityException e) {
+                // check permissions
+            }
+        }
     }
 
     @Override

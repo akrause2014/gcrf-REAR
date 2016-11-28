@@ -72,5 +72,13 @@
             android:layout_weight="1"
             android:visibility="invisible"/>
 
+
     </LinearLayout>
+    <Button
+        android:onClick="uploadDeleteData"
+        android:text="Delete Data"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/delete_data_button"
+        android:layout_alignParentBottom="true"/>
 </RelativeLayout>

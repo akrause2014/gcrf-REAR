@@ -1,13 +1,17 @@
 package epcc.ed.ac.uk.gcrf_rear;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -53,6 +57,34 @@ public class UploadDataActivity extends AppCompatActivity {
             boolean deleteAfterUpload = btnDeleteData.isChecked();
             new UploadFile(url, deleteAfterUpload, filesAvailable).execute();
         }
+    }
+
+    public void uploadDeleteData(View view) {
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Delete Data");
+        alert.setMessage("Remove all data?");
+        alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+                for (File file : datadir.listFiles()) {
+                    if (file.isFile()) {
+                        if (file.delete()) {
+                            filesAvailable--;
+                        }
+                    }
+                }
+                TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
+                progressText.setText("Number of data files: " + filesAvailable);
+            }
+        });
+        alert.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.cancel();
+            }
+        });
+        AlertDialog alertDialog = alert.create();
+        alertDialog.show();
     }
 
     public class UploadFile extends AsyncTask<Void, Integer, Integer>

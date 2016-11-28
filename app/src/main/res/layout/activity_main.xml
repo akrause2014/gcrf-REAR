@@ -57,6 +57,15 @@
             android:id="@+id/main_frequency_text"
             android:layout_weight="1" />
 
+        <TextView
+            android:text=""
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:layout_below="@+id/bottom_linear_layout_id"
+            android:id="@+id/sensorTextView"
+            android:layout_weight="1" />
+
     </LinearLayout>
 
 
