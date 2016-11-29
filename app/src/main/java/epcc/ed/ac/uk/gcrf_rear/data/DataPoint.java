@@ -8,12 +8,15 @@ import android.hardware.Sensor;
 
 public class DataPoint
 {
-    private final int version = 1;
     private float x;
     private float y;
     private float z;
     private final long timestamp;
     private int sensorType;
+
+    public static byte SENSOR_TYPE_ACCELEROMETER = 1;
+    public static byte SENSOR_TYPE_GYROSCOPE = 2;
+    public static byte SENSOR_TYPE_MAGNETIC_FIELD = 3;
 
     public DataPoint(long timestamp, float[] values, int sensorType) {
         this(timestamp, values[0], values[1], values[2], sensorType);
@@ -34,10 +37,6 @@ public class DataPoint
         this.y = y;
         this.z = z;
         this.sensorType = sensorType;
-    }
-
-    public int getVersion() {
-        return version;
     }
 
     public float getX() {
@@ -63,11 +62,11 @@ public class DataPoint
     public byte sensorAsByte() {
         switch (sensorType) {
             case Sensor.TYPE_ACCELEROMETER:
-                return 1;
+                return SENSOR_TYPE_ACCELEROMETER;
             case Sensor.TYPE_GYROSCOPE:
-                return 2;
+                return SENSOR_TYPE_GYROSCOPE;
             case Sensor.TYPE_MAGNETIC_FIELD:
-                return 3;
+                return SENSOR_TYPE_MAGNETIC_FIELD;
             default:
                 return -1;
         }

@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.hardware.Sensor;
+import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -87,8 +88,30 @@ public class DatabaseThread extends Thread {
                         break;
                 }
             }
+            private DataStore getFileStore() throws IOException {
+                if (mFileStoreOn) {
+                    if (mCurrentStore == null) {
+                        mCurrentStore = new DataStore(mContext);
+                    } else if (numRows > mDataSize) {
+                        numRows = 0;
+                        mCurrentStore.close();
+                        mCurrentStore = new DataStore(mContext);
+                    }
+                    return mCurrentStore;
+                }
+                return null;
+            }
             private void handleLocationMessage(Message msg) {
 //                Log.d("database", "Received location message");
+                try {
+                    DataStore store = getFileStore();
+                    if (store != null) {
+                        Location location = (Location) msg.obj;
+                        store.writeLocation(location);
+                    }
+                } catch (IOException e) {
+                    Log.e("database", "error opening file store", e);
+                }
             }
             private void handleSensorMessage(Message msg) {
                 DataPoint dataPoint = (DataPoint)msg.obj;
@@ -96,18 +119,11 @@ public class DatabaseThread extends Thread {
 //                    Log.d("database", "Received " + numRows + " records. Value: " + dataPoint);
 //                }
                 if (dataPoint != null) {
-                    if (mFileStoreOn) {
+                    if (dataPoint != null) {
                         try {
-                            if (mCurrentStore == null) {
-                                mCurrentStore = new DataStore(mContext);
-                            } else if (numRows > mDataSize) {
-                                numRows = 0;
-                                mCurrentStore.close();
-                                mCurrentStore = new DataStore(mContext);
-                            }
-
-                            if (mCurrentStore != null) {
-                                mCurrentStore.writeRecord(dataPoint);
+                            DataStore store = getFileStore();
+                            if (store != null) {
+                                store.writeRecord(dataPoint);
                             }
                         } catch (IOException e) {
                             Log.e("database", "error writing data", e);
