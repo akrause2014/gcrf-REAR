@@ -4,13 +4,13 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.hardware.Sensor;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.SurfaceHolder;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -33,12 +33,13 @@ public class DatabaseThread extends Thread {
     private int mDataSize = 6000;
     private boolean mFileStoreOn = false;
 
-    private Integer mDisplaySensor = Sensor.TYPE_ACCELEROMETER;
+    private DataStore.SensorType mDisplaySensor = DataStore.SensorType.ACCELEROMETER;
     private long mDisplayDelay = 10000000; // 10,000,000 nanoseconds = 0.1 seconds for display updates
     private SurfaceHolder surfaceHolder;
     private final Paint paintX, paintY, paintZ;
     private CircularBuffer<DataPoint> mDataPoints;
     private boolean mDisplayOn = false;
+    private TextView mLocationTextView;
 
     public DatabaseThread() {
 
@@ -57,6 +58,10 @@ public class DatabaseThread extends Thread {
 
     public void setSurfaceHolder(SurfaceHolder holder) {
         surfaceHolder = holder;
+    }
+
+    public void setSensorTextView(TextView textView) {
+        mLocationTextView = textView;
     }
 
     public void setContext(Context context) {
@@ -108,6 +113,10 @@ public class DatabaseThread extends Thread {
                     if (store != null) {
                         Location location = (Location) msg.obj;
                         store.writeLocation(location);
+                        if (mLocationTextView != null) {
+                            mLocationTextView.setText("GPS location available:\nLon/Lat: "
+                                    + location.getLongitude() + "," + location.getLatitude());
+                        }
                     }
                 } catch (IOException e) {
                     Log.e("database", "error opening file store", e);
@@ -202,7 +211,7 @@ public class DatabaseThread extends Thread {
         }
     }
 
-    public void setDisplaySensor(int sensorType) {
+    public void setDisplaySensor(DataStore.SensorType sensorType) {
         mDisplaySensor = sensorType;
         mDataPoints.clear();
     }

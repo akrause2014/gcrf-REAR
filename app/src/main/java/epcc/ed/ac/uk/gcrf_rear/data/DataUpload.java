@@ -31,14 +31,14 @@ public class DataUpload
         return new DataInputStream(
                 new BufferedInputStream(new FileInputStream(file)));
     }
-    public static DataPoint readRecord(DataInputStream inputStream) throws IOException {
-        int sensorType = inputStream.read();
-        float x = inputStream.readFloat();
-        float y = inputStream.readFloat();
-        float z = inputStream.readFloat();
-        long timestamp = inputStream.readLong();
-        return new DataPoint(timestamp, x, y, z, (byte)sensorType);
-    }
+//    public static DataPoint readRecord(DataInputStream inputStream) throws IOException {
+//        int sensorType = inputStream.read();
+//        float x = inputStream.readFloat();
+//        float y = inputStream.readFloat();
+//        float z = inputStream.readFloat();
+//        long timestamp = inputStream.readLong();
+//        return new DataPoint(timestamp, x, y, z, (byte)sensorType);
+//    }
 
 
 }

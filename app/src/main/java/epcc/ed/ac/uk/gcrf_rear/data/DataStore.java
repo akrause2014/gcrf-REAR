@@ -1,6 +1,7 @@
 package epcc.ed.ac.uk.gcrf_rear.data;
 
 import android.content.Context;
+import android.hardware.Sensor;
 import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
@@ -18,14 +19,52 @@ import java.util.UUID;
 
 public class DataStore {
 
-    private final static int TYPE_SENSOR = 1;
-    private final static int TYPE_LOCATION = 2;
-    private final static int VERSION = 1;
+    public enum SensorType
+    {
+        ACCELEROMETER(1),
+        GYROSCOPE(2),
+        MAGNETIC_FIELD(3),
+        LOCATION(4);
 
+        private int type;
+        SensorType(int type) {
+            this.type = type;
+        }
+        public static SensorType valueOf(int androidSensorType) {
+            switch (androidSensorType) {
+                case Sensor.TYPE_ACCELEROMETER:
+                    return ACCELEROMETER;
+                case Sensor.TYPE_GYROSCOPE:
+                    return GYROSCOPE;
+                case Sensor.TYPE_MAGNETIC_FIELD:
+                    return MAGNETIC_FIELD;
+            }
+            return null;
+        }
+        public int getType() {
+            return type;
+        }
+
+        public static byte getAndroidSensorType(int androidSensorType) {
+            SensorType t = valueOf(androidSensorType);
+            if (t != null) {
+                return (byte)t.getType();
+            }
+            else {
+                return -1;
+            }
+        }
+    }
+
+    private final static int VERSION = 1;
 
     private DataOutputStream mOutputStream;
     private String mFileName;
     private int mNumRows;
+
+    static {
+
+    }
 
     public DataStore(Context context) throws IOException {
         mNumRows = 0;
@@ -65,9 +104,8 @@ public class DataStore {
     }
 
     public void writeRecord(DataPoint dataPoint) throws IOException {
-        mOutputStream.writeByte(TYPE_SENSOR);
+        mOutputStream.writeByte(dataPoint.getSensorType().getType());
         mOutputStream.writeByte(VERSION);
-        mOutputStream.writeByte(dataPoint.sensorAsByte());
         mOutputStream.writeLong(dataPoint.getTimestamp());
         mOutputStream.writeFloat(dataPoint.getX());
         mOutputStream.writeFloat(dataPoint.getY());
@@ -76,7 +114,7 @@ public class DataStore {
     }
 
     public void writeLocation(Location location) throws IOException {
-        mOutputStream.writeByte(TYPE_LOCATION);
+        mOutputStream.writeByte(SensorType.LOCATION.getType());
         mOutputStream.writeByte(VERSION);
         mOutputStream.writeLong(location.getTime());
         mOutputStream.writeDouble(location.getLatitude());

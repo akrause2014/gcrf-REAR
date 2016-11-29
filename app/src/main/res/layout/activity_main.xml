@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:layout_below="@+id/bottom_linear_layout_id"
-            android:id="@+id/sensorTextView"
+            android:id="@+id/sensor_text"
             android:layout_weight="1" />
 
     </LinearLayout>

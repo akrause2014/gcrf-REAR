@@ -10,7 +10,6 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -35,11 +34,9 @@ import java.net.URL;
 
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
 
-public class MainActivity extends AppCompatActivity implements LocationListener {
+public class MainActivity extends AppCompatActivity {
 
     private DatabaseThread mDatabase;
-    private LocationManager mLocationManager;
-
     private static final int DEFAULT_SAMPLING_RATE = 100; // default is 100 Hertz
 
 
@@ -48,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mDatabase = ((REARApplication)getApplication()).getDatabase();
+        mDatabase.setSensorTextView((TextView)findViewById(R.id.sensor_text));
         SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
         int rate = settings.getInt(SettingsActivity.FREQUENCY, DEFAULT_SAMPLING_RATE);
         if (rate <= 0) {
@@ -56,11 +54,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         final int samplingPeriod = 1000000 / rate;
         TextView freqText = (TextView)findViewById(R.id.main_frequency_text);
         freqText.setText("Frequency: " + rate + " Hertz");
-        final TextView sensorTextView = (TextView) findViewById(R.id.sensorTextView);
+        final TextView sensorTextView = (TextView) findViewById(R.id.sensor_text);
         final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         final Sensor senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         final Sensor senGyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         final Sensor senMagneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
         if (senAccelerometer == null) {
             findViewById(R.id.track_accel_checkBox).setVisibility(View.GONE);
         }
@@ -88,11 +88,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, samplingPeriod);
                         Log.d("main", "registered listener for magnetic field");
                     }
-                    mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
                     try {
-                        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0l, 0f, MainActivity.this);
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener) getApplication());
                         Log.d("main", "registered listener for GPS");
-                        Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                         if (location != null) {
                             Log.d("location",
                                     "Lat/Lon: " + location.getLatitude() + "," + location.getLongitude()
@@ -111,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 } else {
                     sensorManager.unregisterListener((SensorEventListener) getApplication());
                     try {
-                        mLocationManager.removeUpdates(MainActivity.this);
+                        locationManager.removeUpdates((LocationListener) getApplication());
                     }
                     catch (SecurityException e) {
                         // check permissions
@@ -288,47 +287,4 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-        if (location.getAccuracy() < 10.0) {
-            TextView sensorTextView = (TextView) findViewById(R.id.sensorTextView);
-            sensorTextView.setText("GPS location available:\nLon/Lat: "
-                    + location.getLongitude() + "," + location.getLatitude());
-            try {
-                mLocationManager.removeUpdates(MainActivity.this);
-                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 25, MainActivity.this);
-            }
-            catch (SecurityException e) {
-                // check permissions
-            }
-            Message msg = new Message();
-            msg.arg1 = DatabaseThread.LOCATION_MSG;
-            msg.obj = location;
-            mDatabase.mHandler.sendMessage(msg);
-        }
-        else {
-            try {
-                mLocationManager.removeUpdates(MainActivity.this);
-                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, MainActivity.this);
-            }
-            catch (SecurityException e) {
-                // check permissions
-            }
-        }
-    }
-
-    @Override
-    public void onProviderEnabled(String s) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String s) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String s, int i, Bundle bundle) {
-
-    }
 }
