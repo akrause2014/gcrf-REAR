@@ -34,7 +34,6 @@ public class DatabaseThread extends Thread {
     private boolean mFileStoreOn = false;
 
     private DataStore.SensorType mDisplaySensor = DataStore.SensorType.ACCELEROMETER;
-    private long mDisplayDelay = 10000000; // 10,000,000 nanoseconds = 0.1 seconds for display updates
     private SurfaceHolder surfaceHolder;
     private final Paint paintX, paintY, paintZ;
     private CircularBuffer<DataPoint> mDataPoints;
@@ -128,25 +127,19 @@ public class DatabaseThread extends Thread {
 //                    Log.d("database", "Received " + numRows + " records. Value: " + dataPoint);
 //                }
                 if (dataPoint != null) {
-                    if (dataPoint != null) {
-                        try {
-                            DataStore store = getFileStore();
-                            if (store != null) {
-                                store.writeRecord(dataPoint);
-                            }
-                        } catch (IOException e) {
-                            Log.e("database", "error writing data", e);
+                    try {
+                        DataStore store = getFileStore();
+                        if (store != null) {
+                            store.writeRecord(dataPoint);
                         }
+                    } catch (IOException e) {
+                        Log.e("database", "error writing data", e);
                     }
                     if (mDisplayOn) {
-                        long ts = dataPoint.getTimestamp();
                         if (dataPoint.getSensorType() == mDisplaySensor) {
                             mDataPoints.add(dataPoint);
-                            if ((ts - prevTs) > mDisplayDelay) {
-                                drawGraph();
-                            }
+                            drawGraph();
                         }
-                        prevTs = ts;
                     }
                 }
 
