@@ -10,7 +10,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
-import android.widget.TextView;
 
 import java.io.File;
 
@@ -29,7 +28,6 @@ public class REARApplication extends Application implements SensorEventListener,
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("oncreate", "database: " + mDatabase);
         File dir = new File(getExternalFilesDir(null), "rear");
         dir.mkdir();
         mDatabase = new DatabaseThread();
@@ -46,7 +44,8 @@ public class REARApplication extends Application implements SensorEventListener,
         Message msg = new Message();
         msg.arg1 = DatabaseThread.SENSOR_MSG;
         DataStore.SensorType sensorType = DataStore.SensorType.valueOf(sensorEvent.sensor.getType());
-        msg.obj = new DataPoint(sensorEvent.timestamp, sensorEvent.values, sensorType);
+        long currentTime = System.currentTimeMillis();
+        msg.obj = new DataPoint(currentTime, sensorEvent.values, sensorType);
         mDatabase.mHandler.sendMessage(msg);
     }
 
