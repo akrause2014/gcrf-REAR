@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 } else {
+                    Log.d("main", "unregistered listener");
                     sensorManager.unregisterListener((SensorEventListener) getApplication());
                     try {
                         locationManager.removeUpdates((LocationListener) getApplication());
@@ -186,6 +187,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_display: {
+                final ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton);
+                toggle.setChecked(false);
                 Log.d("menu", "Test display selected");
                 Intent intent = new Intent(this, SensorTestActivity.class);
                 this.startActivity(intent);

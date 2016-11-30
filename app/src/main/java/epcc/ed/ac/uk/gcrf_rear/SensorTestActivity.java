@@ -32,7 +32,7 @@ public class SensorTestActivity extends AppCompatActivity {
                                 (SensorEventListener) getApplication(),
                                 senAccelerometer,
                                 10000);
-                        Log.d("main", "registered listener for accelerometer");
+                        Log.d("test", "registered listener for accelerometer");
                     }
                 }
                 else {

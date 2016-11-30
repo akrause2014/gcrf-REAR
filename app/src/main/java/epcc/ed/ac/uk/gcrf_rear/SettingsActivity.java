@@ -14,7 +14,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String DEVICE_ID = "deviceID";
     public static final String DATA_SIZE = "dataSize";
     public static final String FREQUENCY = "frequency";
-    private static final String DEFAULT_DATA_URL = "http://129.215.213.252:8080/gcrfREAR/webapi/gcrf-REAR/data/";
+    public static final String DEFAULT_DATA_URL = "http://129.215.213.252:8080/gcrfREAR/webapi/gcrf-REAR/data/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

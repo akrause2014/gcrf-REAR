@@ -47,8 +47,9 @@ public class UploadDataActivity extends AppCompatActivity {
     }
 
     public void uploadData(View view) {
+        Log.d("upload", "data upload");
         SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
-        String baseURL = settings.getString(SettingsActivity.DATA_URL, null);
+        String baseURL = settings.getString(SettingsActivity.DATA_URL, SettingsActivity.DEFAULT_DATA_URL);
         String deviceId = settings.getString(SettingsActivity.DEVICE_ID, null);
         if (baseURL != null && deviceId != null) {
             String url = baseURL + deviceId + "/sensor";
