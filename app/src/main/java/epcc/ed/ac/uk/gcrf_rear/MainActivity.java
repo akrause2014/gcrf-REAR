@@ -10,6 +10,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -177,62 +178,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerDevice(String password) {
-        String message = "Device registration failed.";
-        try
-        {
-            URL url = new URL("http://129.215.213.252:8080/gcrfREAR/webapi/gcrf-REAR/register");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.addRequestProperty("Authorization", "Basic " +
-                    Base64.encodeToString(("gcrf-REAR:" + password).getBytes(), Base64.NO_WRAP));
-            conn.connect();
-            conn.getOutputStream().close();
-            int status = conn.getResponseCode();
-            Log.d("register", "Register returned status: " + status);
-            if (status == 200) {
-                InputStream inputStream = conn.getInputStream();
-                byte[] buf = new byte[1024];
-                StringBuilder builder = new StringBuilder();
-                int l;
-                while ((l = inputStream.read(buf)) != -1) {
-                    builder.append(new String(buf, 0, l));
-                }
-                inputStream.close();
-                Log.d("register", "registered with device id: " + builder.toString());
-                String deviceID = builder.toString();
-                SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
-                SharedPreferences.Editor editor = settings.edit();
-                editor.putString(SettingsActivity.DEVICE_ID, deviceID);
-                editor.commit();
-
-                AlertDialog.Builder alert = new AlertDialog.Builder(this);
-                alert.setTitle("Register Device");
-                alert.setMessage("Device was registered successfully.");
-                AlertDialog alertDialog = alert.create();
-                alertDialog.show();
-                return;
-            }
-            else {
-                if (status == 401) {
-                    message += " Unauthorised";
-                }
-            }
-
-        } catch (MalformedURLException e) {
-            Log.d("register", "failed to create URL", e);
-        } catch (ProtocolException e) {
-            Log.d("register", "failed to store preference", e);
-        } catch (IOException e) {
-            Log.d("register", "failed to register", e);
-        }
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Register Device");
-        alert.setMessage(message);
-        AlertDialog alertDialog = alert.create();
-        alertDialog.show();
-
+        String url = "http://129.215.213.252:8080/gcrfREAR/webapi/gcrf-REAR/register";
+        new RegisterDevice(url, password).execute();
     }
 
     @Override
@@ -284,6 +231,85 @@ public class MainActivity extends AppCompatActivity {
             }
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public class RegisterDevice extends AsyncTask<Void, Void, String> {
+
+        private final String url;
+        private final String password;
+
+        public RegisterDevice(String url, String password) {
+            this.url = url;
+            this.password = password;
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            String message = "";
+            try {
+                URL url = new URL(this.url);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setDoOutput(true);
+                conn.setDoInput(true);
+                conn.addRequestProperty("Authorization", "Basic " +
+                        Base64.encodeToString(("gcrf-REAR:" + password).getBytes(), Base64.NO_WRAP));
+                conn.connect();
+                conn.getOutputStream().close();
+                int status = conn.getResponseCode();
+                Log.d("register", "Register returned status: " + status);
+                if (status == 200) {
+                    InputStream inputStream = conn.getInputStream();
+                    byte[] buf = new byte[1024];
+                    StringBuilder builder = new StringBuilder();
+                    int l;
+                    while ((l = inputStream.read(buf)) != -1) {
+                        builder.append(new String(buf, 0, l));
+                    }
+                    inputStream.close();
+                    Log.d("register", "registered with device id: " + builder.toString());
+                    String deviceID = builder.toString();
+                    SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+                    final SharedPreferences.Editor editor = settings.edit();
+                    editor.putString(SettingsActivity.DEVICE_ID, deviceID);
+                    runOnUiThread(new Runnable() {
+                                               public void run() {
+                                                   editor.commit();
+                                               }
+                                           });
+
+                    message = "Device was registered successfully.";
+                } else {
+                    message = "Device registration failed: ";
+                    switch (status) {
+                        case 401:
+                            message += "Unauthorised";
+                            break;
+                        default:
+                            message += "Status " + status;
+                            break;
+                    }
+                }
+
+            } catch (MalformedURLException e) {
+                Log.d("register", "failed to create URL", e);
+            } catch (ProtocolException e) {
+                Log.d("register", "failed to store preference", e);
+            } catch (IOException e) {
+                Log.d("register", "failed to register", e);
+            }
+            final String msg = message;
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+                    alert.setTitle("Register Device");
+                    alert.setMessage(msg);
+                    AlertDialog alertDialog = alert.create();
+                    alertDialog.show();
+                }
+            });
+            return null;
         }
     }
 
