@@ -34,6 +34,8 @@ public class REARApplication extends Application implements SensorEventListener,
     private DatabaseThread mDatabase;
     private long mSystemTime;
     private long mElapsedTime;
+    private Location mCurrentLocation = null;
+    private long mLocationUpdates;
 
     @Override
     public void onCreate() {
@@ -73,27 +75,32 @@ public class REARApplication extends Application implements SensorEventListener,
     @Override
     public void onLocationChanged(Location location) {
         final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
-        if (location.getAccuracy() < 10.0) {
-            try {
-                locationManager.removeUpdates(this);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 25, this);
+        Log.d("location", "Location: " + location);
+        if (isBetterLocation(location, mCurrentLocation)) {
+            mCurrentLocation = location;
+            if (location.getAccuracy() < 10.0) {
+                try {
+                    mLocationUpdates = 5000;
+                    locationManager.removeUpdates(this);
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, mLocationUpdates, 25, this);
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, mLocationUpdates, 25, this);
+                } catch (SecurityException e) {
+                    // check permissions
+                }
+                Message msg = new Message();
+                msg.arg1 = DatabaseThread.LOCATION_MSG;
+                msg.obj = location;
+                mDatabase.mHandler.sendMessage(msg);
             }
-            catch (SecurityException e) {
-                // check permissions
-            }
-            Message msg = new Message();
-            msg.arg1 = DatabaseThread.LOCATION_MSG;
-            msg.obj = location;
-            mDatabase.mHandler.sendMessage(msg);
-        }
-        else {
-            try {
-                locationManager.removeUpdates(this);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, this);
-            }
-            catch (SecurityException e) {
-                // check permissions
+            else if (mLocationUpdates > 100) {
+                try {
+                    mLocationUpdates = 100;
+                    locationManager.removeUpdates(this);
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, mLocationUpdates, 25, this);
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, mLocationUpdates, 25, this);
+                } catch (SecurityException e) {
+                    // check permissions
+                }
             }
         }
     }
@@ -142,5 +149,43 @@ public class REARApplication extends Application implements SensorEventListener,
         }
     }
 
+    protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+        if (currentBestLocation == null) {
+            // A new location is always better than no location
+            return true;
+        }
+
+        // Check whether the new location fix is newer or older
+        long timeDelta = location.getTime() - currentBestLocation.getTime();
+        boolean isNewer = timeDelta > 0;
+
+        // Check whether the new location fix is more or less accurate
+        int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
+        boolean isLessAccurate = accuracyDelta > 0;
+        boolean isMoreAccurate = accuracyDelta < 0;
+        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+
+        // Check if the old and new location are from the same provider
+        boolean isFromSameProvider = isSameProvider(location.getProvider(),
+                currentBestLocation.getProvider());
+
+        // Determine location quality using a combination of timeliness and accuracy
+        if (isMoreAccurate) {
+            return true;
+        } else if (isNewer && !isLessAccurate) {
+            return true;
+        } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+            return true;
+        }
+        return false;
+    }
+
+    /** Checks whether two providers are the same */
+    private boolean isSameProvider(String provider1, String provider2) {
+        if (provider1 == null) {
+            return provider2 == null;
+        }
+        return provider1.equals(provider2);
+    }
 
 }

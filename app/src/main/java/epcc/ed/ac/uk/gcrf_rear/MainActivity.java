@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     try {
                         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener) getApplication());
+                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) getApplication());
                         Log.d("main", "registered listener for GPS");
                         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                         if (location != null) {
