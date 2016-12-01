@@ -1,6 +1,12 @@
 package epcc.ed.ac.uk.gcrf_rear;
 
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -9,10 +15,12 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.io.File;
 
+import epcc.ed.ac.uk.gcrf_rear.data.AlarmReceiver;
 import epcc.ed.ac.uk.gcrf_rear.data.DataPoint;
 import epcc.ed.ac.uk.gcrf_rear.data.DataStore;
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
@@ -24,15 +32,24 @@ import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
 public class REARApplication extends Application implements SensorEventListener, LocationListener {
 
     private DatabaseThread mDatabase;
+    private long mSystemTime;
+    private long mElapsedTime;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        mSystemTime = System.currentTimeMillis();
+        mElapsedTime = SystemClock.elapsedRealtime();
+        Log.d("application", "system time: " + mSystemTime + ", elapsed time: " + mElapsedTime);
         File dir = new File(getExternalFilesDir(null), "rear");
         dir.mkdir();
         mDatabase = new DatabaseThread();
         mDatabase.setContext(this);
         mDatabase.start();
+        SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+        int dataSize = settings.getInt(SettingsActivity.DATA_SIZE, SettingsActivity.DEFAULT_DATA_SIZE);
+        mDatabase.setDataSize(dataSize);
+        scheduleDataUpload();
     }
 
     public DatabaseThread getDatabase() {
@@ -44,8 +61,7 @@ public class REARApplication extends Application implements SensorEventListener,
         Message msg = new Message();
         msg.arg1 = DatabaseThread.SENSOR_MSG;
         DataStore.SensorType sensorType = DataStore.SensorType.valueOf(sensorEvent.sensor.getType());
-        long currentTime = System.currentTimeMillis();
-        msg.obj = new DataPoint(currentTime, sensorEvent.values, sensorType);
+        msg.obj = new DataPoint(sensorEvent.timestamp, sensorEvent.values, sensorType);
         mDatabase.mHandler.sendMessage(msg);
     }
 
@@ -96,5 +112,35 @@ public class REARApplication extends Application implements SensorEventListener,
     public void onStatusChanged(String s, int i, Bundle bundle) {
 
     }
+
+    public void scheduleDataUpload()
+    {
+        SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+        int defaultPeriod = 60; // minutes
+        int period = settings.getInt(SettingsActivity.DATA_UPLOAD_PERIOD, defaultPeriod);
+        if (period <= 0) {
+            period = defaultPeriod;
+        }
+        period = period*60*1000; // convert from minutes to milliseconds
+
+        long time = SystemClock.elapsedRealtime(); // + period;
+
+        Intent intentAlarm = new Intent(this, AlarmReceiver.class);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, time, period,
+                PendingIntent.getBroadcast(this, 1, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT));
+
+    }
+
+    public class TimeSetReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mSystemTime = System.currentTimeMillis();
+            mElapsedTime = SystemClock.elapsedRealtime();
+            Log.d("application", "Time changed. System time: " + mSystemTime + ", elapsed time: " + mElapsedTime);
+        }
+    }
+
 
 }

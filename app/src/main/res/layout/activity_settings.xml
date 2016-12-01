@@ -17,7 +17,7 @@
         android:inputType="number" />
 
     <TextView
-        android:text="File size"
+        android:text="File length (in minutes)"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textView4" />
@@ -25,9 +25,22 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="60000"
+        android:text="1"
         android:id="@+id/data_size"
         android:inputType="number" />
+
+    <TextView
+        android:text="Data upload if online (time period in minutes)"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView6" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="60"
+        android:id="@+id/data_upload_input"
+        android:inputType="textUri" />
 
     <TextView
         android:text="Data upload URL"

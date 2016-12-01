@@ -7,25 +7,15 @@ import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
+
+import epcc.ed.ac.uk.gcrf_rear.data.DataUpload;
 
 
 public class UploadDataActivity extends AppCompatActivity {
@@ -36,7 +26,7 @@ public class UploadDataActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_data);
-        File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+        File datadir = new File(getExternalFilesDir(null), "rear");
         for (File file : datadir.listFiles()) {
             if (file.isFile()) {
                 filesAvailable++;
@@ -134,7 +124,7 @@ public class UploadDataActivity extends AppCompatActivity {
             for (File file : datadir.listFiles()) {
                 if (file.isFile()) {
                     Log.d("upload", "Reading file " + file.getName());
-                    if (uploadFile(file)) {
+                    if (DataUpload.uploadFile(dataURL, file)) {
                         numFiles++;
                         publishProgress(numFiles);
                         if (deleteAfterUpload) {
@@ -147,51 +137,6 @@ public class UploadDataActivity extends AppCompatActivity {
             return numFiles;
         }
 
-        private boolean uploadFile(File file) {
-            try {
-                Log.d("upload", "opening connection");
-                URL url = new URL(dataURL);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("POST");
-                con.setRequestProperty("Content-Type", "application/octet-stream");
-                con.setDoInput(true);
-                con.setDoOutput(true);
-                con.connect();
-                OutputStream outputStream = con.getOutputStream();
-                InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-                byte[] buf = new byte[2048];
-                int c;
-                while ((c = inputStream.read(buf)) >= 0) {
-                    outputStream.write(buf, 0, c);
-                }
-                inputStream.close();
-                outputStream.close();
-                Log.d("upload", "done");
-                InputStream is = con.getInputStream();
-                if (is != null) {
-                    while (is.read(buf) != -1) {
-//                        Log.d("upload input", new String(buf));
-                    }
-                }
-                InputStream es = con.getErrorStream();
-                if (es != null) {
-                    while (es.read(buf) != -1) {
-//                        Log.d("upload error", new String(buf));
-                    }
-                }
-                return true;
-            }
-            catch (MalformedURLException e) {
-                Log.e("upload", "malformed URL", e);
-            } catch (ProtocolException e) {
-                Log.e("upload", "error", e);
-            } catch (ConnectException e) {
-                Log.e("upload", "no connection", e);
-            } catch (IOException e) {
-                Log.e("upload", "error", e);
-            }
-            return false;
-        }
     }
 
     public void uploadClose(View view) {
@@ -199,4 +144,5 @@ public class UploadDataActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
+
 }

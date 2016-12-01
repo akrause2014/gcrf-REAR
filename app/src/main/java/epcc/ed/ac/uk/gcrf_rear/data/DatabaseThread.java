@@ -30,7 +30,7 @@ public class DatabaseThread extends Thread {
     public Context mContext;
 
     private DataStore mCurrentStore;
-    private int mDataSize = 6000;
+    private long mFileStoreLength = 60*1000000000l; // 1 minute in nanoseconds
     private boolean mFileStoreOn = false;
 
     private DataStore.SensorType mDisplaySensor = DataStore.SensorType.ACCELEROMETER;
@@ -69,8 +69,8 @@ public class DatabaseThread extends Thread {
 
     public void setDataSize(int dataSize) {
         if (dataSize > 0) {
-            Log.d("database", "set file size to: " + dataSize);
-            mDataSize = dataSize;
+            Log.d("database", "set data size to: " + dataSize);
+            mFileStoreLength = dataSize*60l*1000000000l; // minutes
         }
     }
 
@@ -79,7 +79,7 @@ public class DatabaseThread extends Thread {
         Looper.prepare();
         mHandler = new Handler() {
             private int numRows = 0;
-            private long prevTs = -1;
+            private long startTime = Long.MAX_VALUE;
             @Override
             public void handleMessage(Message msg) {
                 numRows++;
@@ -92,12 +92,13 @@ public class DatabaseThread extends Thread {
                         break;
                 }
             }
-            private DataStore getFileStore() throws IOException {
+            private DataStore getFileStore(long timestamp) throws IOException {
                 if (mFileStoreOn) {
                     if (mCurrentStore == null) {
                         mCurrentStore = new DataStore(mContext);
-                    } else if (numRows > mDataSize) {
+                    } else if ((timestamp-startTime) > mFileStoreLength) {
                         numRows = 0;
+                        startTime = timestamp;
                         mCurrentStore.close();
                         mCurrentStore = new DataStore(mContext);
                     }
@@ -108,9 +109,9 @@ public class DatabaseThread extends Thread {
             private void handleLocationMessage(Message msg) {
 //                Log.d("database", "Received location message");
                 try {
-                    DataStore store = getFileStore();
+                    Location location = (Location) msg.obj;
+                    DataStore store = getFileStore(location.getTime()*1000000); // time is in milliseconds
                     if (store != null) {
-                        Location location = (Location) msg.obj;
                         store.writeLocation(location);
                         if (mLocationTextView != null) {
                             mLocationTextView.setText("GPS location available:\nLon/Lat: "
@@ -128,7 +129,7 @@ public class DatabaseThread extends Thread {
 //                }
                 if (dataPoint != null) {
                     try {
-                        DataStore store = getFileStore();
+                        DataStore store = getFileStore(dataPoint.getTimestamp());
                         if (store != null) {
                             store.writeRecord(dataPoint);
                         }
