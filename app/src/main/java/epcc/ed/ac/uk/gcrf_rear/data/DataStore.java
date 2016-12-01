@@ -104,8 +104,8 @@ public class DataStore {
     }
 
     public void writeRecord(DataPoint dataPoint) throws IOException {
-        mOutputStream.writeByte(dataPoint.getSensorType().getType());
         mOutputStream.writeByte(VERSION);
+        mOutputStream.writeByte(dataPoint.getSensorType().getType());
         mOutputStream.writeLong(dataPoint.getTimestamp());
         mOutputStream.writeFloat(dataPoint.getX());
         mOutputStream.writeFloat(dataPoint.getY());
@@ -114,8 +114,8 @@ public class DataStore {
     }
 
     public void writeLocation(Location location) throws IOException {
-        mOutputStream.writeByte(SensorType.LOCATION.getType());
         mOutputStream.writeByte(VERSION);
+        mOutputStream.writeByte(SensorType.LOCATION.getType());
         mOutputStream.writeLong(location.getTime());
         mOutputStream.writeDouble(location.getLatitude());
         mOutputStream.writeDouble(location.getLongitude());
