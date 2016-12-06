@@ -19,14 +19,14 @@ public class AlarmReceiver extends BroadcastReceiver
 {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d("upload", "uploading data files");
+        Log.d("upload alarm", "uploading data files");
         SharedPreferences settings = context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
         String baseURL = settings.getString(SettingsActivity.DATA_URL, SettingsActivity.DEFAULT_DATA_URL);
         String deviceId = settings.getString(SettingsActivity.DEVICE_ID, null);
         if (baseURL != null && deviceId != null) {
             String url = baseURL + deviceId + "/sensor";
             File datadir = new File(context.getExternalFilesDir(null), "rear");
-            new UploadFile(url, datadir).execute();
+            new UploadFile(url, datadir, context).execute();
         }
     }
 
@@ -34,10 +34,12 @@ public class AlarmReceiver extends BroadcastReceiver
 
         private final String url;
         private final File datadir;
+        private final Context context;
 
-        public UploadFile(String url, File datadir) {
+        public UploadFile(String url, File datadir, Context context) {
             this.url = url;
             this.datadir = datadir;
+            this.context = context;
         }
         @Override
         protected Void doInBackground(Void... voids) {
@@ -54,5 +56,12 @@ public class AlarmReceiver extends BroadcastReceiver
             return null;
         }
 
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            SharedPreferences settings = context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putLong(SettingsActivity.LAST_UPLOAD_DATE, System.currentTimeMillis());
+            editor.commit();
+        }
     }
 }

@@ -43,6 +43,12 @@
         android:inputType="textUri" />
 
     <TextView
+        android:text="Last data upload: Unknown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/last_data_upload_view" />
+
+    <TextView
         android:text="Data upload URL"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

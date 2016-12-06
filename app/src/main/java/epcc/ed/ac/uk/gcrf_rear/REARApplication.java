@@ -132,12 +132,13 @@ public class REARApplication extends Application implements SensorEventListener,
 
         long time = SystemClock.elapsedRealtime(); // + period;
 
-        Intent intentAlarm = new Intent(this, AlarmReceiver.class);
-
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(alarmIntent);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, time, period,
-                PendingIntent.getBroadcast(this, 1, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT));
-
+                PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+        Log.d("application", "set upload delay to " + period/60000 + " minutes");
     }
 
     public class TimeSetReceiver extends BroadcastReceiver {

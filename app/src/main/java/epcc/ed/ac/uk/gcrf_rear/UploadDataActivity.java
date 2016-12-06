@@ -115,6 +115,10 @@ public class UploadDataActivity extends AppCompatActivity {
             TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
             progressText.setText("Complete. Uploaded " + numFiles + "/" + filesAvailable + " files");
             findViewById(R.id.upload_close_button).setVisibility(View.VISIBLE);
+            SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putLong(SettingsActivity.LAST_UPLOAD_DATE, System.currentTimeMillis());
+            editor.commit();
         }
 
         @Override

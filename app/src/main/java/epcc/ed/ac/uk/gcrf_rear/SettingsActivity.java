@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -15,8 +17,9 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String DATA_SIZE = "dataSize";
     public static final String FREQUENCY = "frequency";
     public static final String DATA_UPLOAD_PERIOD = "dataUpload";
+    public static final String LAST_UPLOAD_DATE = "lastUpload";
     public static final String DEFAULT_DATA_URL = "http://129.215.213.252:8080/gcrfREAR/webapi/gcrf-REAR/data/";
-    public static final int DEFAULT_UPLOAD_PERIOD = 60;
+    public static final int DEFAULT_UPLOAD_PERIOD = 60; // once an hour
     public static final int DEFAULT_DATA_SIZE = 1;
 
     @Override
@@ -34,6 +37,16 @@ public class SettingsActivity extends AppCompatActivity {
         freqInput.setText(String.valueOf(settings.getInt(FREQUENCY, 100)));
         EditText dataUploadInput = (EditText) findViewById(R.id.data_upload_input);
         dataUploadInput.setText(String.valueOf(settings.getInt(DATA_UPLOAD_PERIOD, DEFAULT_UPLOAD_PERIOD)));
+        TextView lastDataUpload = (TextView) findViewById(R.id.last_data_upload_view);
+        long lastDate = settings.getLong(LAST_UPLOAD_DATE, -1);
+        String s = "Last data upload: ";
+        if (lastDate != -1) {
+            s += DateFormat.format("yyyy-MM-dd'T'HH:mm:ss.SSSZ", lastDate);
+        }
+        else {
+            s += "Unknown";
+        }
+        lastDataUpload.setText(s);
     }
 
     public void saveSettings(View view) {
@@ -79,6 +92,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         editor.commit();
+        ((REARApplication)getApplication()).scheduleDataUpload();
 
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
