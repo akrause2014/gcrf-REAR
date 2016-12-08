@@ -74,6 +74,10 @@ public class DatabaseThread extends Thread {
         }
     }
 
+    public DataStore getCurrentStore() {
+        return mCurrentStore;
+    }
+
     @Override
     public void run() {
         Looper.prepare();

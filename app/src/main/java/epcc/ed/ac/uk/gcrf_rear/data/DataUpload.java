@@ -50,7 +50,7 @@ public class DataUpload
 
     public static boolean uploadFile(String dataURL, File file) {
         try {
-            Log.d("upload", "opening connection");
+            Log.d("upload", "opening connection to " + dataURL);
             URL url = new URL(dataURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
@@ -68,16 +68,19 @@ public class DataUpload
             inputStream.close();
             outputStream.close();
             Log.d("upload", "done");
-            InputStream is = con.getInputStream();
-            if (is != null) {
-                while (is.read(buf) != -1) {
-//                        Log.d("upload input", new String(buf));
+            int status = con.getResponseCode();
+            if (status == 200) {
+                InputStream is = con.getInputStream();
+                if (is != null) {
+                    while (is.read(buf) != -1) {
+                        // Log.d("upload input", new String(buf));
+                    }
                 }
-            }
-            InputStream es = con.getErrorStream();
-            if (es != null) {
-                while (es.read(buf) != -1) {
-//                        Log.d("upload error", new String(buf));
+                InputStream es = con.getErrorStream();
+                if (es != null) {
+                    while (es.read(buf) != -1) {
+                        // Log.d("upload error", new String(buf));
+                    }
                 }
             }
             return true;

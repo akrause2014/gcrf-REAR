@@ -35,12 +35,33 @@ import java.net.ProtocolException;
 import java.net.URL;
 
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
+import epcc.ed.ac.uk.gcrf_rear.settings.SettingsActivity;
 
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseThread mDatabase;
-    private static final int DEFAULT_SAMPLING_RATE = 100; // default is 100 Hertz
+    private static final int DEFAULT_SAMPLING_RATE = 50; // Hertz
 
+    private int getRate() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String value = settings.getString(getResources().getString(R.string.pref_key_frequency), null);
+        int rate = DEFAULT_SAMPLING_RATE;
+        if (value != null) {
+            try {
+                rate = Integer.valueOf(value);
+                if (rate <= 0) rate = DEFAULT_SAMPLING_RATE;
+            }
+            catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return rate;
+    }
+
+    private int getSamplingPeriod() {
+        int rate = getRate();
+        return 1000000 / rate;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,14 +69,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mDatabase = ((REARApplication)getApplication()).getDatabase();
         mDatabase.setSensorTextView((TextView)findViewById(R.id.sensor_text));
-        SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
-        int rate = settings.getInt(SettingsActivity.FREQUENCY, DEFAULT_SAMPLING_RATE);
-        if (rate <= 0) {
-            rate = DEFAULT_SAMPLING_RATE;
-        }
-        final int samplingPeriod = 1000000 / rate;
-        TextView freqText = (TextView)findViewById(R.id.main_frequency_text);
-        freqText.setText("Frequency: " + rate + " Hertz");
         final TextView sensorTextView = (TextView) findViewById(R.id.sensor_text);
         final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         final Sensor senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -66,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
         final ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                int rate = getRate();
+                final int samplingPeriod = 1000000 / rate;
                 if (isChecked) {
                     Log.d("main", "sampling period: " + samplingPeriod + " microseconds");
                     mDatabase.setFileStoreOn(true);
@@ -131,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
                             "AccelSensor", isChecked).commit();
                     if (sensor != null && toggle.isChecked()) {
                         if (isChecked) {
+                            int samplingPeriod = getSamplingPeriod();
                             sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
                             Log.d("main", "registered listener for accelerometer");
                         } else {
@@ -157,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
                             "GyroSensor", isChecked).commit();
                     if (sensor != null && toggle.isChecked()) {
                         if (((CheckBox) v).isChecked()) {
+                            int samplingPeriod = getSamplingPeriod();
                             sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
                             Log.d("main", "registered listener for gyroscope");
                         } else {
@@ -182,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
                             "MagnetSensor", toggle.isChecked()).commit();
                     if (sensor != null && isChecked) {
                         if (((CheckBox) v).isChecked()) {
+                            int samplingPeriod = getSamplingPeriod();
                             sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
                             Log.d("main", "registered listener for magnetic field");
                         } else {
@@ -197,6 +215,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        int rate = getRate();
+        TextView freqText = (TextView)findViewById(R.id.main_frequency_text);
+        freqText.setText("Frequency: " + rate + " Hertz");
+
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -204,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerDevice(String password) {
-        String url = "http://129.215.213.252:8080/gcrfREAR/webapi/gcrf-REAR/register";
+        String url = getString(R.string.register_url);
         new RegisterDevice(url, password).execute();
     }
 
@@ -282,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.addRequestProperty("Authorization", "Basic " +
-                        Base64.encodeToString(("gcrf-REAR:" + password).getBytes(), Base64.NO_WRAP));
+                        Base64.encodeToString((getString(R.string.register_user) + ":" + password).getBytes(), Base64.NO_WRAP));
                 conn.connect();
                 conn.getOutputStream().close();
                 int status = conn.getResponseCode();
@@ -298,9 +325,9 @@ public class MainActivity extends AppCompatActivity {
                     inputStream.close();
                     Log.d("register", "registered with device id: " + builder.toString());
                     String deviceID = builder.toString();
-                    SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+                    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                     final SharedPreferences.Editor editor = settings.edit();
-                    editor.putString(SettingsActivity.DEVICE_ID, deviceID);
+                    editor.putString(getString(R.string.pref_key_upload_device), deviceID);
                     runOnUiThread(new Runnable() {
                                                public void run() {
                                                    editor.commit();

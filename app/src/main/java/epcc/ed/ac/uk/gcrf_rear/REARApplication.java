@@ -16,6 +16,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Message;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
@@ -48,8 +49,18 @@ public class REARApplication extends Application implements SensorEventListener,
         mDatabase = new DatabaseThread();
         mDatabase.setContext(this);
         mDatabase.start();
-        SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
-        int dataSize = settings.getInt(SettingsActivity.DATA_SIZE, SettingsActivity.DEFAULT_DATA_SIZE);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String value = settings.getString(getString(R.string.pref_key_file_length), null);
+        int dataSize = 1;
+        if (value != null) {
+            try {
+                dataSize = Integer.valueOf(value);
+                if (dataSize <= 0) dataSize = 1;
+            }
+            catch (NumberFormatException e) {
+                // ignore
+            }
+        }
         mDatabase.setDataSize(dataSize);
         scheduleDataUpload();
     }
@@ -120,11 +131,24 @@ public class REARApplication extends Application implements SensorEventListener,
 
     }
 
-    public void scheduleDataUpload()
+    public void scheduleDataUpload() {
+        String value = PreferenceManager.getDefaultSharedPreferences(this).getString(
+                getString(R.string.pref_key_upload_period), null);
+        int period = 60; // default is 60 minutes
+        if (value != null) {
+            try {
+                period = Integer.valueOf(value);
+            }
+            catch (NumberFormatException e) {
+                // ignore and use default value
+            }
+        }
+        scheduleDataUpload(period);
+    }
+    public void scheduleDataUpload(int p)
     {
-        SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
         int defaultPeriod = 60; // minutes
-        int period = settings.getInt(SettingsActivity.DATA_UPLOAD_PERIOD, defaultPeriod);
+        int period = p;
         if (period <= 0) {
             period = defaultPeriod;
         }

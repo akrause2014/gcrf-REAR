@@ -22,7 +22,7 @@
         </activity>
         <activity android:name=".UploadDataActivity"></activity>
         <activity android:name=".SensorTestActivity"></activity>
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".settings.SettingsActivity"></activity>
         <receiver android:name=".REARApplication$TimeSetReceiver">
             <intent-filter >
                 <action android:name="android.intent.action.TIME_SET"/>

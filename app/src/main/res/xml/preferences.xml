@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <android.support.v7.preference.PreferenceCategory
+        android:title="Data storage"
+        android:key="pref_key_storage_settings">
+        <android.support.v7.preference.EditTextPreference
+            android:key="@string/pref_key_frequency"
+            android:title="Frequency (Hertz)"
+            android:numeric="integer"
+            android:defaultValue="50" />
+        <android.support.v7.preference.EditTextPreference
+            android:key="@string/pref_key_file_length"
+            android:title="File length (in minutes)"
+            android:numeric="integer"
+            android:defaultValue="1" />
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="Data upload"
+        android:key="pref_key_upload_settings">
+        <android.support.v7.preference.EditTextPreference
+            android:key="@string/pref_key_upload_url"
+            android:title="URL for data upload"
+            android:defaultValue="http://129.215.213.248:8080/gcrfREAR/webapi/gcrf-REAR/" />
+        <android.support.v7.preference.EditTextPreference
+            android:key="@string/pref_key_upload_device"
+            android:title="Device ID"
+            android:defaultValue="" />
+        <android.support.v7.preference.EditTextPreference
+            android:key="@string/pref_key_upload_period"
+            android:title="Data upload (minutes)"
+            android:numeric="integer"
+            android:defaultValue="60" />
+    </android.support.v7.preference.PreferenceCategory>
+</android.support.v7.preference.PreferenceScreen>

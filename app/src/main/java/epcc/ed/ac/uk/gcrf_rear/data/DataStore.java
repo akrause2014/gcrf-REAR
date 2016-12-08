@@ -62,10 +62,6 @@ public class DataStore {
     private String mFileName;
     private int mNumRows;
 
-    static {
-
-    }
-
     public DataStore(Context context) throws IOException {
         mNumRows = 0;
         if (isExternalStorageWritable()) {
@@ -78,7 +74,7 @@ public class DataStore {
         }
     }
 
-    public boolean isExternalStorageWritable() {
+    private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state)) {
             return true;
@@ -86,7 +82,7 @@ public class DataStore {
         return false;
     }
 
-    public DataOutputStream openFile(File dir, String name) throws IOException {
+    private DataOutputStream openFile(File dir, String name) throws IOException {
         mOutputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir, name))));
         return mOutputStream;
     }
@@ -124,4 +120,7 @@ public class DataStore {
         mNumRows++;
     }
 
+    public String getFileName() {
+        return mFileName;
+    }
 }

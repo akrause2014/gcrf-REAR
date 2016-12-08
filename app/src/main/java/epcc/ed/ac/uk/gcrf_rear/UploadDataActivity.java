@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -38,9 +39,9 @@ public class UploadDataActivity extends AppCompatActivity {
 
     public void uploadData(View view) {
         Log.d("upload", "data upload");
-        SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
-        String baseURL = settings.getString(SettingsActivity.DATA_URL, SettingsActivity.DEFAULT_DATA_URL);
-        String deviceId = settings.getString(SettingsActivity.DEVICE_ID, null);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String baseURL = settings.getString(getString(R.string.pref_key_upload_url), getString(R.string.default_url));
+        String deviceId = settings.getString(getString(R.string.pref_key_upload_device), null);
         if (baseURL != null && deviceId != null) {
             String url = baseURL + deviceId + "/sensor";
             Log.d("upload", "uploading data to " + url);
@@ -115,9 +116,9 @@ public class UploadDataActivity extends AppCompatActivity {
             TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
             progressText.setText("Complete. Uploaded " + numFiles + "/" + filesAvailable + " files");
             findViewById(R.id.upload_close_button).setVisibility(View.VISIBLE);
-            SharedPreferences settings = getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(UploadDataActivity.this);
             SharedPreferences.Editor editor = settings.edit();
-            editor.putLong(SettingsActivity.LAST_UPLOAD_DATE, System.currentTimeMillis());
+            editor.putLong(getString(R.string.last_upload_date), System.currentTimeMillis());
             editor.commit();
         }
 

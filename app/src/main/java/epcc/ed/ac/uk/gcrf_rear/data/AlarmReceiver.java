@@ -5,11 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
 
-import epcc.ed.ac.uk.gcrf_rear.SettingsActivity;
+import epcc.ed.ac.uk.gcrf_rear.R;
 
 /**
  * Created by akrause on 30/11/2016.
@@ -20,9 +21,9 @@ public class AlarmReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d("upload alarm", "uploading data files");
-        SharedPreferences settings = context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
-        String baseURL = settings.getString(SettingsActivity.DATA_URL, SettingsActivity.DEFAULT_DATA_URL);
-        String deviceId = settings.getString(SettingsActivity.DEVICE_ID, null);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        String baseURL = settings.getString(context.getString(R.string.pref_key_upload_url), "");
+        String deviceId = settings.getString(context.getString(R.string.pref_key_upload_device), null);
         if (baseURL != null && deviceId != null) {
             String url = baseURL + deviceId + "/sensor";
             File datadir = new File(context.getExternalFilesDir(null), "rear");
@@ -58,9 +59,9 @@ public class AlarmReceiver extends BroadcastReceiver
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            SharedPreferences settings = context.getSharedPreferences(SettingsActivity.PREFS_NAME, 0);
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
             SharedPreferences.Editor editor = settings.edit();
-            editor.putLong(SettingsActivity.LAST_UPLOAD_DATE, System.currentTimeMillis());
+            editor.putLong(context.getString(R.string.last_upload_date), System.currentTimeMillis());
             editor.commit();
         }
     }
