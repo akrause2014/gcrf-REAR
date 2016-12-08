@@ -128,7 +128,7 @@ public class UploadDataActivity extends AppCompatActivity {
             int numFiles = 0;
             for (File file : datadir.listFiles()) {
                 if (file.isFile()) {
-                    Log.d("upload", "Reading file " + file.getName());
+//                    Log.d("upload", "Reading file " + file.getName());
                     if (DataUpload.uploadFile(dataURL, file)) {
                         numFiles++;
                         publishProgress(numFiles);

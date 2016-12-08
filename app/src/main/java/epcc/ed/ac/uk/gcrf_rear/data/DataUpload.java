@@ -1,6 +1,7 @@
 package epcc.ed.ac.uk.gcrf_rear.data;
 
 import android.content.Context;
+import android.support.v7.preference.Preference;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -50,7 +51,6 @@ public class DataUpload
 
     public static boolean uploadFile(String dataURL, File file) {
         try {
-            Log.d("upload", "opening connection to " + dataURL);
             URL url = new URL(dataURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
@@ -67,9 +67,8 @@ public class DataUpload
             }
             inputStream.close();
             outputStream.close();
-            Log.d("upload", "done");
             int status = con.getResponseCode();
-            if (status == 200) {
+            if (status/100 == 2) {
                 InputStream is = con.getInputStream();
                 if (is != null) {
                     while (is.read(buf) != -1) {
@@ -78,10 +77,20 @@ public class DataUpload
                 }
                 InputStream es = con.getErrorStream();
                 if (es != null) {
-                    while (es.read(buf) != -1) {
-                        // Log.d("upload error", new String(buf));
+                    while ((c = es.read(buf)) != -1) {
+                        Log.d("upload error", new String(buf, 0, c));
                     }
                 }
+            }
+            else {
+                InputStream es = con.getErrorStream();
+                if (es != null) {
+                    while ((c = es.read(buf)) != -1) {
+                        Log.d("upload error", new String(buf, 0, c));
+                    }
+                }
+                Log.d("upload", "server returned status " + status);
+                return false;
             }
             return true;
         }

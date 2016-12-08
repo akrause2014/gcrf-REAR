@@ -293,6 +293,7 @@ public class MainActivity extends AppCompatActivity {
 
         private final String url;
         private final String password;
+        private String message;
 
         public RegisterDevice(String url, String password) {
             this.url = url;
@@ -301,7 +302,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(Void... params) {
-            String message = "";
             try {
                 URL url = new URL(this.url);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -325,16 +325,8 @@ public class MainActivity extends AppCompatActivity {
                     inputStream.close();
                     Log.d("register", "registered with device id: " + builder.toString());
                     String deviceID = builder.toString();
-                    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                    final SharedPreferences.Editor editor = settings.edit();
-                    editor.putString(getString(R.string.pref_key_upload_device), deviceID);
-                    runOnUiThread(new Runnable() {
-                                               public void run() {
-                                                   editor.commit();
-                                               }
-                                           });
-
                     message = "Device was registered successfully.";
+                    return deviceID;
                 } else {
                     message = "Device registration failed: ";
                     switch (status) {
@@ -348,23 +340,34 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } catch (MalformedURLException e) {
+                message = "Device registration failed";
                 Log.d("register", "failed to create URL", e);
             } catch (ProtocolException e) {
+                message = "Device registration failed";
                 Log.d("register", "failed to store preference", e);
             } catch (IOException e) {
+                message = "Device registration failed";
                 Log.d("register", "failed to register", e);
             }
-            final String msg = message;
-            runOnUiThread(new Runnable() {
-                public void run() {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-                    alert.setTitle("Register Device");
-                    alert.setMessage(msg);
-                    AlertDialog alertDialog = alert.create();
-                    alertDialog.show();
-                }
-            });
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String deviceID)
+        {
+            if (deviceID != null) {
+                SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                final SharedPreferences.Editor editor = settings.edit();
+                editor.putString(getString(R.string.pref_key_upload_device), deviceID);
+                editor.commit();
+            }
+
+            AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+            alert.setTitle("Register Device");
+            alert.setMessage(message);
+            AlertDialog alertDialog = alert.create();
+            alertDialog.show();
+
         }
     }
 
