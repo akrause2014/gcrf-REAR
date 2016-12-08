@@ -54,14 +54,15 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
                     int p = Integer.valueOf(value);
                     ((REARApplication) getActivity().getApplication()).scheduleDataUpload(p);
                 } catch (NumberFormatException e) {
-
+                    // leave as is if invalid
                 }
             }
-            if (key.equals(getResources().getString(R.string.pref_key_frequency))) {
+            else if (key.equals(getResources().getString(R.string.pref_key_file_length))) {
                 try {
                     int p = Integer.valueOf(value);
+                    ((REARApplication) getActivity().getApplication()).getDatabase().setDataSize(p);
                 } catch (NumberFormatException e) {
-
+                    // ignore if invalid
                 }
             }
         }
