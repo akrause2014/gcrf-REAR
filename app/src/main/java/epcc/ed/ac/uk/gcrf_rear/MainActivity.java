@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerDevice(String password) {
-        String url = getString(R.string.register_url);
+        String url = getString(R.string.base_url) + "register";
         new RegisterDevice(url, password).execute();
     }
 

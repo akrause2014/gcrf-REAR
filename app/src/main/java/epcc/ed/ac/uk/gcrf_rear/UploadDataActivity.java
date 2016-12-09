@@ -40,14 +40,22 @@ public class UploadDataActivity extends AppCompatActivity {
     public void uploadData(View view) {
         Log.d("upload", "data upload");
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        String baseURL = settings.getString(getString(R.string.pref_key_upload_url), getString(R.string.default_url));
+        String baseURL = settings.getString(getString(R.string.pref_key_upload_url), getString(R.string.base_url));
         String deviceId = settings.getString(getString(R.string.pref_key_upload_device), null);
-        if (baseURL != null && deviceId != null) {
-            String url = baseURL + deviceId + "/sensor";
-            Log.d("upload", "uploading data to " + url);
+        if (deviceId == null || deviceId.isEmpty()) {
+            TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
+            progressText.setText("Upload failed. Make sure the device is registered.");
+            findViewById(R.id.upload_ok_button).setVisibility(View.INVISIBLE);
+            findViewById(R.id.upload_cancel_button).setVisibility(View.INVISIBLE);
+            findViewById(R.id.upload_close_button).setVisibility(View.VISIBLE);
+        }
+        else {
+            String registerURL = baseURL + "register/" + deviceId;
+            String dataURL = baseURL + "data/" + deviceId + "/sensor";
+            Log.d("upload", "uploading data to " + dataURL);
             CheckBox btnDeleteData = (CheckBox) findViewById(R.id.delete_upload_checkbox);
             boolean deleteAfterUpload = btnDeleteData.isChecked();
-            new UploadFile(url, deleteAfterUpload, filesAvailable).execute();
+            new UploadFile(registerURL, dataURL, deleteAfterUpload, filesAvailable).execute();
         }
     }
 
@@ -79,15 +87,17 @@ public class UploadDataActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    public class UploadFile extends AsyncTask<Void, Integer, Integer>
+    public class UploadFile extends AsyncTask<Void, Integer, UploadResult>
     {
-        private final boolean deleteAfterUpload;
+        private final String registerURL;
         private final String dataURL;
         private int filesAvailable;
+        private final boolean deleteAfterUpload;
 
-        public UploadFile(String url, boolean deleteAfterUpload, int filesAvailable) {
+        public UploadFile(String registerURL, String dataURL, boolean deleteAfterUpload, int filesAvailable) {
             this.deleteAfterUpload = deleteAfterUpload;
-            this.dataURL = url;
+            this.registerURL = registerURL;
+            this.dataURL = dataURL;
             this.filesAvailable = filesAvailable;
         }
 
@@ -112,23 +122,43 @@ public class UploadDataActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(Integer numFiles) {
+        protected void onPostExecute(UploadResult result) {
             TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
-            progressText.setText("Complete. Uploaded " + numFiles + "/" + filesAvailable + " files");
             findViewById(R.id.upload_close_button).setVisibility(View.VISIBLE);
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(UploadDataActivity.this);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putLong(getString(R.string.last_upload_date), System.currentTimeMillis());
-            editor.commit();
+            int numFiles = result.getNumFiles();
+            switch (result.getStatus()) {
+                case OK:
+                    progressText.setText("Complete. Uploaded " + numFiles + "/" + filesAvailable + " files");
+                    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(UploadDataActivity.this);
+                    SharedPreferences.Editor editor = settings.edit();
+                    editor.putLong(getString(R.string.last_upload_date), System.currentTimeMillis());
+                    editor.commit();
+                    break;
+                case NOT_REGISTERED:
+                    progressText.setText("Upload failed. Make sure the device is registered.");
+                    break;
+                case CONNECTION_FAILED:
+                    progressText.setText("Upload failed. Check if the device is online.");
+                    break;
+                default:
+                    progressText.setText("Upload failed. Try again later.");
+                    break;
+            }
         }
 
         @Override
-        protected Integer doInBackground(Void... voids) {
+        protected UploadResult doInBackground(Void... voids) {
             File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
             int numFiles = 0;
+            int status = DataUpload.isRegistered(registerURL);
+            UploadResult.Status uploadStatus = UploadResult.Status.valueOf(status);
+            if (uploadStatus != UploadResult.Status.OK) {
+                Log.d("upload", "pre check failed: status = " + status);
+                return new UploadResult(numFiles, uploadStatus);
+            }
             for (File file : datadir.listFiles()) {
                 if (file.isFile()) {
-//                    Log.d("upload", "Reading file " + file.getName());
+                    //                    Log.d("upload", "Reading file " + file.getName());
                     if (DataUpload.uploadFile(dataURL, file)) {
                         numFiles++;
                         publishProgress(numFiles);
@@ -139,7 +169,7 @@ public class UploadDataActivity extends AppCompatActivity {
                 }
             }
             Log.d("upload", "Complete");
-            return numFiles;
+            return new UploadResult(numFiles);
         }
 
     }
@@ -148,6 +178,48 @@ public class UploadDataActivity extends AppCompatActivity {
         Log.d("upload", "cancel data upload");
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
+    }
+
+    public static class UploadResult
+    {
+        public enum Status {
+            NOT_REGISTERED,
+            SERVER_ERROR,
+            CONNECTION_FAILED,
+            UNKNOWN,
+            OK;
+
+            public static Status valueOf(int status) {
+                switch (status) {
+                    case 404: return NOT_REGISTERED;
+                    case 200: return OK;
+                    case 500: return SERVER_ERROR;
+                    case 0: return CONNECTION_FAILED;
+                    default: return UNKNOWN;
+                }
+            }
+
+        }
+        private final int numFiles;
+        private final Status status;
+
+        public UploadResult(int numFiles) {
+            this(numFiles, Status.OK);
+        }
+
+        public UploadResult(int numFiles, Status status) {
+            this.numFiles = numFiles;
+            this.status = status;
+        }
+
+        public int getNumFiles() {
+            return numFiles;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
     }
 
 }

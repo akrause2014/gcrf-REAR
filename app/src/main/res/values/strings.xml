@@ -6,7 +6,6 @@
     <string name="pref_key_upload_device">pref_key_upload_device</string>
     <string name="pref_key_upload_period">pref_key_upload_period</string>
     <string name="last_upload_date">last_upload_date</string>
-    <string name="default_url">http://129.215.213.248:8080/gcrfREAR/webapi/gcrf-REAR/data/</string>
-    <string name="register_url">http://129.215.213.248:8080/gcrfREAR/webapi/gcrf-REAR/register</string>
+    <string name="base_url">http://129.215.213.248:8080/gcrfREAR/webapi/gcrf-REAR/</string>
     <string name="register_user">gcrfREAR</string>
 </resources>

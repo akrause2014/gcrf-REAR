@@ -49,6 +49,29 @@ public class DataUpload
 //        return new DataPoint(timestamp, x, y, z, (byte)sensorType);
 //    }
 
+    public static int isRegistered(String target) {
+        try {
+            URL url = new URL(target);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(false);
+            con.connect();
+            int status = con.getResponseCode();
+            return status;
+        }
+        catch (MalformedURLException e) {
+            Log.e("upload", "malformed URL", e);
+        } catch (ProtocolException e) {
+            Log.e("upload", "error", e);
+        } catch (ConnectException e) {
+            Log.e("upload", "no connection", e);
+        } catch (IOException e) {
+            Log.e("upload", "error", e);
+        }
+        return 0;
+    }
+
     public static boolean uploadFile(String dataURL, File file) {
         try {
             URL url = new URL(dataURL);
