@@ -131,15 +131,15 @@ public class REARApplication extends Application implements SensorEventListener,
 
     }
 
-    public void scheduleDataUpload() {
+    public void scheduleDataUpload()
+    {
         String value = PreferenceManager.getDefaultSharedPreferences(this).getString(
-                getString(R.string.pref_key_upload_period), null);
+               getString(R.string.pref_key_upload_period), null);
         int period = 60; // default is 60 minutes
         if (value != null) {
             try {
                 period = Integer.valueOf(value);
-            }
-            catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 // ignore and use default value
             }
         }
@@ -147,6 +147,22 @@ public class REARApplication extends Application implements SensorEventListener,
     }
     public void scheduleDataUpload(int p)
     {
+        boolean isActive = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(
+                getString(R.string.pref_key_upload_active), false);
+
+        // cancel the alarm intent
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(alarmIntent);
+
+        // data upload is off
+        if (!isActive) {
+            Log.d("application", "automatic data upload off");
+            return;
+        }
+
+        // data upload is on - schedule the new data period
         int defaultPeriod = 60; // minutes
         int period = p;
         if (period <= 0) {
@@ -156,13 +172,9 @@ public class REARApplication extends Application implements SensorEventListener,
 
         long time = SystemClock.elapsedRealtime(); // + period;
 
-        Intent intent = new Intent(this, AlarmReceiver.class);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.cancel(alarmIntent);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, time, period,
                 PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT));
-        Log.d("application", "set upload delay to " + period/60000 + " minutes");
+        Log.d("application", "set automatic upload delay to " + period/60000 + " minutes");
     }
 
     public class TimeSetReceiver extends BroadcastReceiver {

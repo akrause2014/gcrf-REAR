@@ -44,25 +44,29 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.startsWith("pref_key")) {
             Log.d("preferences", "preference changed: " + key);
-            String value = sharedPreferences.getString(key, "");
-            Preference preference = findPreference(key);
-            if (preference != null) {
-                preference.setSummary(value);
+            if (key.equals(getString(R.string.pref_key_upload_active))) {
+                ((REARApplication) getActivity().getApplication()).scheduleDataUpload();
             }
-            if (key.equals(getResources().getString(R.string.pref_key_upload_period))) {
-                try {
-                    int p = Integer.valueOf(value);
-                    ((REARApplication) getActivity().getApplication()).scheduleDataUpload(p);
-                } catch (NumberFormatException e) {
-                    // leave as is if invalid
+            else {
+                String value = sharedPreferences.getString(key, "");
+                Preference preference = findPreference(key);
+                if (preference != null) {
+                    preference.setSummary(value);
                 }
-            }
-            else if (key.equals(getResources().getString(R.string.pref_key_file_length))) {
-                try {
-                    int p = Integer.valueOf(value);
-                    ((REARApplication) getActivity().getApplication()).getDatabase().setDataSize(p);
-                } catch (NumberFormatException e) {
-                    // ignore if invalid
+                if (key.equals(getResources().getString(R.string.pref_key_upload_period))) {
+                    try {
+                        int p = Integer.valueOf(value);
+                        ((REARApplication) getActivity().getApplication()).scheduleDataUpload(p);
+                    } catch (NumberFormatException e) {
+                        // leave as is if invalid
+                    }
+                } else if (key.equals(getResources().getString(R.string.pref_key_file_length))) {
+                    try {
+                        int p = Integer.valueOf(value);
+                        ((REARApplication) getActivity().getApplication()).getDatabase().setDataSize(p);
+                    } catch (NumberFormatException e) {
+                        // ignore if invalid
+                    }
                 }
             }
         }

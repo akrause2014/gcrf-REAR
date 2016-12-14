@@ -18,6 +18,10 @@
     <android.support.v7.preference.PreferenceCategory
         android:title="Data upload"
         android:key="pref_key_upload_settings">
+        <android.support.v7.preference.CheckBoxPreference
+            android:key="@string/pref_key_upload_active"
+            android:title="Automatic data transfer?"
+            android:defaultValue="false"/>
         <android.support.v7.preference.EditTextPreference
             android:key="@string/pref_key_upload_url"
             android:title="URL for data upload"
