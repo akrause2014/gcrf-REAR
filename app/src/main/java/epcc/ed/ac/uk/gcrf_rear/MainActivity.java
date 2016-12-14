@@ -1,5 +1,6 @@
 package epcc.ed.ac.uk.gcrf_rear;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -29,6 +30,7 @@ import android.widget.ToggleButton;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -293,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
 
         private final String url;
         private final String password;
+        private ProgressDialog progress;
         private String message;
 
         public RegisterDevice(String url, String password) {
@@ -345,6 +348,9 @@ public class MainActivity extends AppCompatActivity {
             } catch (ProtocolException e) {
                 message = "Device registration failed";
                 Log.d("register", "failed to store preference", e);
+            } catch (ConnectException e) {
+                message = "Device registration failed: " + e.getMessage();
+                Log.d("register", "failed to register", e);
             } catch (IOException e) {
                 message = "Device registration failed";
                 Log.d("register", "failed to register", e);
@@ -353,8 +359,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        protected void onPreExecute() {
+            progress = new ProgressDialog(MainActivity.this);
+            progress.setMessage("Registering device");
+            progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progress.setIndeterminate(true);
+            progress.show();
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate(values);
+        }
+
+        @Override
         protected void onPostExecute(String deviceID)
         {
+            progress.hide();
+
             if (deviceID != null) {
                 SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 final SharedPreferences.Editor editor = settings.edit();

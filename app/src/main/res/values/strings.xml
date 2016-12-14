@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">gcrf-REAR</string>
+    <string name="app_name">gcrfREAR</string>
     <string name="pref_key_file_length">pref_key_file_length</string>
     <string name="pref_key_frequency">pref_key_frequency</string>
     <string name="pref_key_upload_active">pref_key_upload_active</string>
