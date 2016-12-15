@@ -98,25 +98,25 @@ public class MainActivity extends AppCompatActivity {
                         sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, samplingPeriod);
                         Log.d("main", "registered listener for magnetic field");
                     }
-                    try {
-                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener) getApplication());
-                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) getApplication());
-                        Log.d("main", "registered listener for GPS");
-                        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        if (location != null) {
-                            Log.d("location",
-                                    "Lat/Lon: " + location.getLatitude() + "," + location.getLongitude()
-                                            + "\nAccuracy: " + location.getAccuracy()
-                                            + "\nAltitude: " + location.getAltitude());
-                        }
-                        else {
-                            sensorTextView.setText("No GPS location available.\nLat/Lon: ---/---");
-                        }
-                    }
-                    catch (SecurityException e) {
-                        // check permissions
-                        Log.e("main", "failed to register location listener", e);
-                    }
+//                    try {
+//                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener) getApplication());
+//                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) getApplication());
+//                        Log.d("main", "registered listener for GPS");
+//                        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                        if (location != null) {
+//                            Log.d("location",
+//                                    "Lat/Lon: " + location.getLatitude() + "," + location.getLongitude()
+//                                            + "\nAccuracy: " + location.getAccuracy()
+//                                            + "\nAltitude: " + location.getAltitude());
+//                        }
+//                        else {
+//                            sensorTextView.setText("No GPS location available.\nLat/Lon: ---/---");
+//                        }
+//                    }
+//                    catch (SecurityException e) {
+//                        // check permissions
+//                        Log.e("main", "failed to register location listener", e);
+//                    }
 
                 } else {
                     Log.d("main", "unregistered listener");

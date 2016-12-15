@@ -4,6 +4,7 @@ import android.content.Context;
 import android.hardware.Sensor;
 import android.location.Location;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.io.BufferedOutputStream;
@@ -24,7 +25,8 @@ public class DataStore {
         ACCELEROMETER(1),
         GYROSCOPE(2),
         MAGNETIC_FIELD(3),
-        LOCATION(4);
+        LOCATION(4),
+        TIME(5);
 
         private int type;
         SensorType(int type) {
@@ -61,13 +63,18 @@ public class DataStore {
     private DataOutputStream mOutputStream;
     private String mFileName;
     private int mNumRows;
+    private final long mElapsedTime;
+    private final long mSystemTime;
 
     public DataStore(Context context) throws IOException {
         mNumRows = 0;
+        mSystemTime = System.currentTimeMillis();
+        mElapsedTime = SystemClock.elapsedRealtime();
         if (isExternalStorageWritable()) {
             mFileName = UUID.randomUUID().toString() + ".dat";
             Log.d("data store", "opening file: " + mFileName);
             openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
+            writeTime(mElapsedTime, mSystemTime);
         }
         else {
             throw new IOException("Problem creating data store: External file storage is not writable");
@@ -97,6 +104,13 @@ public class DataStore {
             mNumRows = 0;
             mFileName = null;
         }
+    }
+
+    public void writeTime(long elapsedTime, long systemTime) throws IOException {
+        mOutputStream.writeByte(VERSION);
+        mOutputStream.writeByte(SensorType.TIME.getType());
+        mOutputStream.writeLong(elapsedTime);
+        mOutputStream.writeLong(systemTime);
     }
 
     public void writeRecord(DataPoint dataPoint) throws IOException {

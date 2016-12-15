@@ -117,10 +117,10 @@ public class DatabaseThread extends Thread {
                     DataStore store = getFileStore(location.getTime()*1000000); // time is in milliseconds
                     if (store != null) {
                         store.writeLocation(location);
-                        if (mLocationTextView != null) {
-                            mLocationTextView.setText("GPS location available:\nLon/Lat: "
-                                    + location.getLongitude() + "," + location.getLatitude());
-                        }
+//                        if (mLocationTextView != null) {
+//                            mLocationTextView.setText("GPS location available:\nLon/Lat: "
+//                                    + location.getLongitude() + "," + location.getLatitude());
+//                        }
                     }
                 } catch (IOException e) {
                     Log.e("database", "error opening file store", e);
