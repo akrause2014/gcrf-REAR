@@ -1,7 +1,6 @@
 package epcc.ed.ac.uk.gcrf_rear.data;
 
 import android.content.Context;
-import android.support.v7.preference.Preference;
 import android.util.Log;
 
 import java.io.BufferedInputStream;

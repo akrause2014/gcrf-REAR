@@ -9,4 +9,6 @@
     <string name="last_upload_date">last_upload_date</string>
     <string name="base_url">http://129.215.213.248:8080/gcrfREAR/webapi/gcrf-REAR/</string>
     <string name="register_user">gcrfREAR</string>
+    <string name="system_time">SystemTime</string>
+    <string name="elapsed_real_time">ElapsedRealTime</string>
 </resources>

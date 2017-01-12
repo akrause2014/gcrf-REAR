@@ -3,7 +3,6 @@ package epcc.ed.ac.uk.gcrf_rear;
 import android.app.AlarmManager;
 import android.app.Application;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -33,17 +32,12 @@ import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
 public class REARApplication extends Application implements SensorEventListener, LocationListener {
 
     private DatabaseThread mDatabase;
-    private long mSystemTime;
-    private long mElapsedTime;
     private Location mCurrentLocation = null;
     private long mLocationUpdates;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mSystemTime = System.currentTimeMillis();
-        mElapsedTime = SystemClock.elapsedRealtime();
-        Log.d("application", "system time: " + mSystemTime + ", elapsed time: " + mElapsedTime);
         File dir = new File(getExternalFilesDir(null), "rear");
         dir.mkdir();
         mDatabase = new DatabaseThread();
@@ -175,15 +169,6 @@ public class REARApplication extends Application implements SensorEventListener,
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, time, period,
                 PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT));
         Log.d("application", "set automatic upload delay to " + period/60000 + " minutes");
-    }
-
-    public class TimeSetReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            mSystemTime = System.currentTimeMillis();
-            mElapsedTime = SystemClock.elapsedRealtime();
-            Log.d("application", "Time changed. System time: " + mSystemTime + ", elapsed time: " + mElapsedTime);
-        }
     }
 
     protected boolean isBetterLocation(Location location, Location currentBestLocation) {
