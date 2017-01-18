@@ -10,6 +10,7 @@ import android.util.Log;
 
 import java.io.File;
 
+import epcc.ed.ac.uk.gcrf_rear.Logger;
 import epcc.ed.ac.uk.gcrf_rear.R;
 import epcc.ed.ac.uk.gcrf_rear.UploadDataActivity;
 
@@ -33,7 +34,7 @@ public class AlarmReceiver extends BroadcastReceiver
         }
     }
 
-    public class UploadFile extends AsyncTask<Void, Void, Void> {
+    public class UploadFile extends AsyncTask<Void, Void, Integer> {
 
         private final String registerURL;
         private final String url;
@@ -47,14 +48,23 @@ public class AlarmReceiver extends BroadcastReceiver
             this.context = context;
         }
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Integer doInBackground(Void... voids) {
             int numFiles = 0;
-            int status = DataUpload.isRegistered(registerURL);
-            UploadDataActivity.UploadResult.Status uploadStatus = UploadDataActivity.UploadResult.Status.valueOf(status);
-            if (uploadStatus != UploadDataActivity.UploadResult.Status.OK) {
-                Log.d("upload", "pre check failed: status = " + status);
+            try {
+                int status = DataUpload.isRegistered(registerURL);
+                UploadDataActivity.UploadResult.Status uploadStatus = UploadDataActivity.UploadResult.Status.valueOf(status);
+                if (uploadStatus != UploadDataActivity.UploadResult.Status.OK) {
+                    Log.d("upload", "pre check failed: HTTP status = " + status);
+                    Logger.log(context, "Upload failed: HTTP status = " + status + "\n");
+                    return null;
+                }
+            }
+            catch (Exception e) {
+                Log.e("upload", "pre check failed", e);
+                Logger.log(context, "Upload failed: error = " + e.getClass().getName() + ": " + e.getMessage() + "\n");
                 return null;
             }
+
             for (File file : datadir.listFiles()) {
                 if (file.isFile()) {
                     if (DataUpload.uploadFile(url, file)) {
@@ -64,11 +74,14 @@ public class AlarmReceiver extends BroadcastReceiver
                 }
             }
             Log.d("upload", "Data upload complete: " + numFiles + " files");
-            return null;
+            return numFiles;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
+        protected void onPostExecute(Integer numFiles) {
+
+            Logger.log(context, "Data upload complete: " + numFiles + " files\n");
+
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
             SharedPreferences.Editor editor = settings.edit();
             editor.putLong(context.getString(R.string.last_upload_date), System.currentTimeMillis());

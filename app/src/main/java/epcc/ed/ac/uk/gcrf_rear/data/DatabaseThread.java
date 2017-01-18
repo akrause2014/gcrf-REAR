@@ -8,6 +8,7 @@ import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.TextView;
@@ -39,6 +40,22 @@ public class DatabaseThread extends Thread {
     private CircularBuffer<DataPoint> mDataPoints;
     private boolean mDisplayOn = false;
     private TextView mLocationTextView;
+
+
+    private static volatile PowerManager.WakeLock wakeLock = null;
+
+    synchronized private static PowerManager.WakeLock getLock(Context context)
+    {
+        if (wakeLock == null) {
+            PowerManager pm=
+                    (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, DatabaseThread.class.getName());
+        }
+
+        return wakeLock;
+    }
+
 
     public DatabaseThread() {
 
@@ -82,11 +99,9 @@ public class DatabaseThread extends Thread {
     public void run() {
         Looper.prepare();
         mHandler = new Handler() {
-            private int numRows = 0;
-            private long startTime = Long.MAX_VALUE;
+            private long startTime = -1;
             @Override
             public void handleMessage(Message msg) {
-                numRows++;
                 switch (msg.arg1) {
                     case LOCATION_MSG:
                         handleLocationMessage(msg);
@@ -100,11 +115,14 @@ public class DatabaseThread extends Thread {
                 if (mFileStoreOn) {
                     if (mCurrentStore == null) {
                         mCurrentStore = new DataStore(mContext);
-                    } else if ((timestamp-startTime) > mFileStoreLength) {
-                        numRows = 0;
+                        startTime = timestamp;
+                        Log.d("upload", "New data store: "+ startTime);
+                    }
+                    else if ((timestamp-startTime) > mFileStoreLength) {
                         startTime = timestamp;
                         mCurrentStore.close();
                         mCurrentStore = new DataStore(mContext);
+                        Log.d("upload", "Closed data store: " + startTime);
                     }
                     return mCurrentStore;
                 }
@@ -200,6 +218,7 @@ public class DatabaseThread extends Thread {
         try {
             if (mCurrentStore != null) {
                 mCurrentStore.close();
+                Log.d("upload", "Closed data store: " + mCurrentStore.getTimestamp());
             }
         } catch (IOException e) {
             Log.e("database", "error closing data file", e);
@@ -220,5 +239,11 @@ public class DatabaseThread extends Thread {
 
     public void setFileStoreOn(boolean fileStoreOn) {
         mFileStoreOn = fileStoreOn;
+        if (fileStoreOn) {
+            getLock(mContext).acquire();
+        }
+        else {
+            getLock(mContext).release();
+        }
     }
 }

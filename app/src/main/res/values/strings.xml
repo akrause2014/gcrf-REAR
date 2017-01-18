@@ -11,4 +11,5 @@
     <string name="register_user">gcrfREAR</string>
     <string name="system_time">SystemTime</string>
     <string name="elapsed_real_time">ElapsedRealTime</string>
+    <string name="log_file">rear-log.txt</string>
 </resources>

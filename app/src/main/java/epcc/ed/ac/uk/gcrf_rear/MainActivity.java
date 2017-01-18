@@ -12,6 +12,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -278,6 +279,12 @@ public class MainActivity extends AppCompatActivity {
                 });
                 AlertDialog alertDialog = alert.create();
                 alertDialog.show();
+                return true;
+            }
+            case R.id.menu_view_log: {
+                Log.d("menu", "View logs selected");
+                Intent intent = new Intent(this, LogViewActivity.class);
+                this.startActivity(intent);
                 return true;
             }
             case R.id.menu_settings: {

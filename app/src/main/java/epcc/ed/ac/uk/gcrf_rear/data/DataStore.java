@@ -12,7 +12,10 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.UUID;
+
+import epcc.ed.ac.uk.gcrf_rear.Logger;
 
 /**
  * Created by akrause on 11/11/2016.
@@ -65,16 +68,20 @@ public class DataStore {
     private int mNumRows;
     private final long mElapsedTime;
     private final long mSystemTime;
+    private final Context context;
+    private Long mTimestamp = null;
 
     public DataStore(Context context) throws IOException {
         mNumRows = 0;
         mSystemTime = System.currentTimeMillis();
         mElapsedTime = SystemClock.elapsedRealtime();
+        this.context = context;
         if (isExternalStorageWritable()) {
             mFileName = UUID.randomUUID().toString() + ".dat";
-            Log.d("data store", "opening file: " + mFileName);
+            Log.d("data store", "opening file: " + mFileName + " at " + (new Date()));
             openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
             writeTime(mElapsedTime, mSystemTime);
+            Logger.log(context, new Date() + ": Created new data store.\n");
         }
         else {
             throw new IOException("Problem creating data store: External file storage is not writable");
@@ -101,6 +108,7 @@ public class DataStore {
         }
         finally {
             Log.d("data store", "Closed file: " + mFileName + ". Wrote " + mNumRows + " records.");
+            Logger.log(context, new Date() + ": Closed file: " + mFileName + ". Wrote " + mNumRows + " records.\n");
             mNumRows = 0;
             mFileName = null;
         }
@@ -114,6 +122,7 @@ public class DataStore {
     }
 
     public void writeRecord(DataPoint dataPoint) throws IOException {
+        mTimestamp = dataPoint.getTimestamp();
         mOutputStream.writeByte(VERSION);
         mOutputStream.writeByte(dataPoint.getSensorType().getType());
         mOutputStream.writeLong(dataPoint.getTimestamp());
@@ -136,5 +145,9 @@ public class DataStore {
 
     public String getFileName() {
         return mFileName;
+    }
+
+    public Long getTimestamp() {
+        return mTimestamp;
     }
 }
