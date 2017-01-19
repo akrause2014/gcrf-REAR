@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -38,6 +39,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
+import epcc.ed.ac.uk.gcrf_rear.sensor.SensorListenerService;
 import epcc.ed.ac.uk.gcrf_rear.settings.SettingsActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mDatabase = ((REARApplication)getApplication()).getDatabase();
         mDatabase.setSensorTextView((TextView)findViewById(R.id.sensor_text));
         final TextView sensorTextView = (TextView) findViewById(R.id.sensor_text);
@@ -82,23 +85,27 @@ public class MainActivity extends AppCompatActivity {
         final ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                int rate = getRate();
-                final int samplingPeriod = 1000000 / rate;
+
                 if (isChecked) {
-                    Log.d("main", "sampling period: " + samplingPeriod + " microseconds");
+                    startService(new Intent(MainActivity.this, SensorListenerService.class));
                     mDatabase.setFileStoreOn(true);
-                    if (senAccelerometer != null && ((CheckBox) findViewById(R.id.track_accel_checkBox)).isChecked()) {
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senAccelerometer, samplingPeriod);
-                        Log.d("main", "registered listener for accelerometer");
-                    }
-                    if (senGyroscope != null && ((CheckBox) findViewById(R.id.track_gyro_checkBox)).isChecked()) {
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senGyroscope, samplingPeriod);
-                        Log.d("main", "registered listener for gyroscope");
-                    }
-                    if (senMagneticField != null && ((CheckBox) findViewById(R.id.track_magnet_checkBox)).isChecked()) {
-                        sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, samplingPeriod);
-                        Log.d("main", "registered listener for magnetic field");
-                    }
+
+//                    int rate = getRate();
+//                    final int samplingPeriod = 1000000 / rate;
+//                    Log.d("main", "sampling period: " + samplingPeriod + " microseconds");
+//                    if (senAccelerometer != null && ((CheckBox) findViewById(R.id.track_accel_checkBox)).isChecked()) {
+//                        sensorManager.registerListener((SensorEventListener) getApplication(), senAccelerometer, samplingPeriod);
+//                        Log.d("main", "registered listener for accelerometer");
+//                    }
+//                    if (senGyroscope != null && ((CheckBox) findViewById(R.id.track_gyro_checkBox)).isChecked()) {
+//                        sensorManager.registerListener((SensorEventListener) getApplication(), senGyroscope, samplingPeriod);
+//                        Log.d("main", "registered listener for gyroscope");
+//                    }
+//                    if (senMagneticField != null && ((CheckBox) findViewById(R.id.track_magnet_checkBox)).isChecked()) {
+//                        sensorManager.registerListener((SensorEventListener) getApplication(), senMagneticField, samplingPeriod);
+//                        Log.d("main", "registered listener for magnetic field");
+//                    }
+
 //                    try {
 //                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener) getApplication());
 //                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) getApplication());
@@ -121,13 +128,14 @@ public class MainActivity extends AppCompatActivity {
 
                 } else {
                     Log.d("main", "unregistered listener");
-                    sensorManager.unregisterListener((SensorEventListener) getApplication());
-                    try {
-                        locationManager.removeUpdates((LocationListener) getApplication());
-                    }
-                    catch (SecurityException e) {
-                        // check permissions
-                    }
+//                    sensorManager.unregisterListener((SensorEventListener) getApplication());
+//                    try {
+//                        locationManager.removeUpdates((LocationListener) getApplication());
+//                    }
+//                    catch (SecurityException e) {
+//                        // check permissions
+//                    }
+                    stopService(new Intent(MainActivity.this, SensorListenerService.class));
                     mDatabase.setFileStoreOn(false);
                     mDatabase.close();
                     sensorTextView.setText("");
@@ -135,86 +143,86 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        CheckBox accelCheckBox = (CheckBox) findViewById(R.id.track_accel_checkBox);
-        if (senAccelerometer == null) {
-            accelCheckBox.setVisibility(View.GONE);
-        }
-        else {
-            accelCheckBox.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Sensor sensor = senAccelerometer;
-                    boolean isChecked = ((CheckBox) v).isChecked();
-                    PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit().putBoolean(
-                            "AccelSensor", isChecked).commit();
-                    if (sensor != null && toggle.isChecked()) {
-                        if (isChecked) {
-                            int samplingPeriod = getSamplingPeriod();
-                            sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
-                            Log.d("main", "registered listener for accelerometer");
-                        } else {
-                            sensorManager.unregisterListener((SensorEventListener) getApplication(), sensor);
-                        }
-                    }
-                }
-            });
-            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("AccelSensor", true);
-            accelCheckBox.setChecked(isChecked);
-        }
-
-        CheckBox gyroCheckBox = (CheckBox) findViewById(R.id.track_gyro_checkBox);
-        if (senGyroscope == null) {
-            gyroCheckBox.setVisibility(View.GONE);
-        }
-        else {
-            gyroCheckBox.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Sensor sensor = senGyroscope;
-                    boolean isChecked = ((CheckBox) v).isChecked();
-                    PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit().putBoolean(
-                            "GyroSensor", isChecked).commit();
-                    if (sensor != null && toggle.isChecked()) {
-                        if (((CheckBox) v).isChecked()) {
-                            int samplingPeriod = getSamplingPeriod();
-                            sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
-                            Log.d("main", "registered listener for gyroscope");
-                        } else {
-                            sensorManager.unregisterListener((SensorEventListener) getApplication(), sensor);
-                        }
-                    }
-                }
-            });
-            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("GyroSensor", true);
-            gyroCheckBox.setChecked(isChecked);
-        }
-        final CheckBox magnetCheckBox = (CheckBox) findViewById(R.id.track_magnet_checkBox);
-        if (senMagneticField == null) {
-            magnetCheckBox.setVisibility(View.GONE);
-        }
-        else {
-            magnetCheckBox.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Sensor sensor = senMagneticField;
-                    boolean isChecked = ((CheckBox) v).isChecked();
-                    PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit().putBoolean(
-                            "MagnetSensor", toggle.isChecked()).commit();
-                    if (sensor != null && isChecked) {
-                        if (((CheckBox) v).isChecked()) {
-                            int samplingPeriod = getSamplingPeriod();
-                            sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
-                            Log.d("main", "registered listener for magnetic field");
-                        } else {
-                            sensorManager.unregisterListener((SensorEventListener) getApplication(), sensor);
-                        }
-                    }
-                }
-            });
-            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("MagnetSensor", true);
-            magnetCheckBox.setChecked(isChecked);
-        }
-
+//        CheckBox accelCheckBox = (CheckBox) findViewById(R.id.track_accel_checkBox);
+//        if (senAccelerometer == null) {
+//            accelCheckBox.setVisibility(View.GONE);
+//        }
+//        else {
+//            accelCheckBox.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Sensor sensor = senAccelerometer;
+//                    boolean isChecked = ((CheckBox) v).isChecked();
+//                    PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit().putBoolean(
+//                            "AccelSensor", isChecked).commit();
+//                    if (sensor != null && toggle.isChecked()) {
+//                        if (isChecked) {
+//                            int samplingPeriod = getSamplingPeriod();
+//                            sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
+//                            Log.d("main", "registered listener for accelerometer");
+//                        } else {
+//                            sensorManager.unregisterListener((SensorEventListener) getApplication(), sensor);
+//                        }
+//                    }
+//                }
+//            });
+//            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("AccelSensor", true);
+//            accelCheckBox.setChecked(isChecked);
+//        }
+//
+//        CheckBox gyroCheckBox = (CheckBox) findViewById(R.id.track_gyro_checkBox);
+//        if (senGyroscope == null) {
+//            gyroCheckBox.setVisibility(View.GONE);
+//        }
+//        else {
+//            gyroCheckBox.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Sensor sensor = senGyroscope;
+//                    boolean isChecked = ((CheckBox) v).isChecked();
+//                    PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit().putBoolean(
+//                            "GyroSensor", isChecked).commit();
+//                    if (sensor != null && toggle.isChecked()) {
+//                        if (((CheckBox) v).isChecked()) {
+//                            int samplingPeriod = getSamplingPeriod();
+//                            sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
+//                            Log.d("main", "registered listener for gyroscope");
+//                        } else {
+//                            sensorManager.unregisterListener((SensorEventListener) getApplication(), sensor);
+//                        }
+//                    }
+//                }
+//            });
+//            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("GyroSensor", true);
+//            gyroCheckBox.setChecked(isChecked);
+//        }
+//        final CheckBox magnetCheckBox = (CheckBox) findViewById(R.id.track_magnet_checkBox);
+//        if (senMagneticField == null) {
+//            magnetCheckBox.setVisibility(View.GONE);
+//        }
+//        else {
+//            magnetCheckBox.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Sensor sensor = senMagneticField;
+//                    boolean isChecked = ((CheckBox) v).isChecked();
+//                    PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit().putBoolean(
+//                            "MagnetSensor", toggle.isChecked()).commit();
+//                    if (sensor != null && isChecked) {
+//                        if (((CheckBox) v).isChecked()) {
+//                            int samplingPeriod = getSamplingPeriod();
+//                            sensorManager.registerListener((SensorEventListener) getApplication(), sensor, samplingPeriod);
+//                            Log.d("main", "registered listener for magnetic field");
+//                        } else {
+//                            sensorManager.unregisterListener((SensorEventListener) getApplication(), sensor);
+//                        }
+//                    }
+//                }
+//            });
+//            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("MagnetSensor", true);
+//            magnetCheckBox.setChecked(isChecked);
+//        }
+//
     }
 
     @Override
@@ -223,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
         int rate = getRate();
         TextView freqText = (TextView)findViewById(R.id.main_frequency_text);
         freqText.setText("Frequency: " + rate + " Hertz");
-
+//        startService(new Intent(this, SensorListenerService.class));
     }
 
     @Override

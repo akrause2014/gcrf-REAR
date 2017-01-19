@@ -8,7 +8,6 @@ import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.PowerManager;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.TextView;
@@ -40,22 +39,6 @@ public class DatabaseThread extends Thread {
     private CircularBuffer<DataPoint> mDataPoints;
     private boolean mDisplayOn = false;
     private TextView mLocationTextView;
-
-
-    private static volatile PowerManager.WakeLock wakeLock = null;
-
-    synchronized private static PowerManager.WakeLock getLock(Context context)
-    {
-        if (wakeLock == null) {
-            PowerManager pm=
-                    (PowerManager)context.getSystemService(Context.POWER_SERVICE);
-
-            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, DatabaseThread.class.getName());
-        }
-
-        return wakeLock;
-    }
-
 
     public DatabaseThread() {
 
@@ -239,11 +222,5 @@ public class DatabaseThread extends Thread {
 
     public void setFileStoreOn(boolean fileStoreOn) {
         mFileStoreOn = fileStoreOn;
-        if (fileStoreOn) {
-            getLock(mContext).acquire();
-        }
-        else {
-            getLock(mContext).release();
-        }
     }
 }

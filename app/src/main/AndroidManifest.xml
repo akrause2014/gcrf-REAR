@@ -31,6 +31,8 @@
             </intent-filter>
         </receiver>
         <receiver android:name=".data.AlarmReceiver"/>
+        <service android:enabled="true"
+            android:name=".sensor.SensorListenerService"/>
     </application>
 
 </manifest>
