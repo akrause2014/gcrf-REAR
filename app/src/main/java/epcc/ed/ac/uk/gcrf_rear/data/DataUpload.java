@@ -60,7 +60,7 @@ public class DataUpload
         return status;
     }
 
-    public static boolean uploadFile(String dataURL, File file) {
+    public static Response uploadFile(String dataURL, File file) {
         try {
             URL url = new URL(dataURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -79,13 +79,18 @@ public class DataUpload
             inputStream.close();
             outputStream.close();
             int status = con.getResponseCode();
+            String response = null;
             if (status/100 == 2) {
                 InputStream is = con.getInputStream();
+                StringBuilder s = new StringBuilder();
                 if (is != null) {
-                    while (is.read(buf) != -1) {
+                    int l;
+                    while ((l=is.read(buf)) != -1) {
                         // Log.d("upload input", new String(buf));
+                        s.append(new String(buf, 0, l));
                     }
                 }
+                response = s.toString();
                 InputStream es = con.getErrorStream();
                 if (es != null) {
                     while ((c = es.read(buf)) != -1) {
@@ -101,9 +106,9 @@ public class DataUpload
                     }
                 }
                 Log.d("upload", "server returned status " + status);
-                return false;
+                return new Response(false, status, response);
             }
-            return true;
+            return new Response(true, status, response);
         }
         catch (MalformedURLException e) {
             Log.e("upload", "malformed URL", e);
@@ -114,7 +119,27 @@ public class DataUpload
         } catch (IOException e) {
             Log.e("upload", "error", e);
         }
-        return false;
+        return new Response(false);
+    }
+
+    public static class Response {
+        public String response;
+        public boolean success;
+        public int status;
+
+        public Response(boolean success) {
+            this(success, 0, null);
+        }
+
+        public Response(boolean success, int status) {
+            this(success, status, null);
+        }
+
+        public Response(boolean success, int status, String response) {
+            this.success = success;
+            this.response = response;
+            this.status = status;
+        }
     }
 
 

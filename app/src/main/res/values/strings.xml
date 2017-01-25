@@ -12,4 +12,7 @@
     <string name="system_time">SystemTime</string>
     <string name="elapsed_real_time">ElapsedRealTime</string>
     <string name="log_file">rear-log.txt</string>
+    <string name="sensor_accel_check">AccelSensor</string>
+    <string name="sensor_gyro_check">GyroSensor</string>
+    <string name="sensor_magnet_check">MagnetSensor</string>
 </resources>

@@ -28,7 +28,8 @@ public class AlarmReceiver extends BroadcastReceiver
         String deviceId = settings.getString(context.getString(R.string.pref_key_upload_device), null);
         if (baseURL != null && deviceId != null && !deviceId.isEmpty()) {
             String registerURL = baseURL + "register/" + deviceId;
-            String dataURL = baseURL + deviceId + "/sensor";
+            String dataURL = baseURL + "data/" + deviceId; // + "/sensor";
+            String metaURL = baseURL + "metadata/" + deviceId;
             File datadir = new File(context.getExternalFilesDir(null), "rear");
             new UploadFile(registerURL, dataURL, datadir, context).execute();
         }
@@ -39,6 +40,7 @@ public class AlarmReceiver extends BroadcastReceiver
         private final String registerURL;
         private final String url;
         private final File datadir;
+        private final File metadir;
         private final Context context;
 
         public UploadFile(String registerURL, String url, File datadir, Context context) {
@@ -46,6 +48,7 @@ public class AlarmReceiver extends BroadcastReceiver
             this.url = url;
             this.datadir = datadir;
             this.context = context;
+            this.metadir = new File(context.getExternalFilesDir(null), "rear_meta");
         }
         @Override
         protected Integer doInBackground(Void... voids) {
@@ -67,7 +70,15 @@ public class AlarmReceiver extends BroadcastReceiver
 
             for (File file : datadir.listFiles()) {
                 if (file.isFile()) {
-                    if (DataUpload.uploadFile(url, file)) {
+                    DataUpload.Response response = DataUpload.uploadFile(url, file);
+                    if (response.success) {
+                        try {
+                            int upload = Integer.valueOf(response.response);
+                            DataUpload.uploadFile(url + "/" + upload, new File(metadir, file.getName()));
+                        } catch (NumberFormatException e) {
+                            // wrong response
+                            Log.d("data upload", "Unexpected response: " + response.response);
+                        }
                         numFiles++;
                         file.delete();
                     }

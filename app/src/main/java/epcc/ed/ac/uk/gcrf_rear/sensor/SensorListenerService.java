@@ -55,11 +55,25 @@ public class SensorListenerService extends Service implements SensorEventListene
         }
     };
 
-    private void registerListener() {
+    private void registerListener()
+    {
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        int samplingPeriod = getSamplingPeriod();
         Sensor accel = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         if (accel != null) {
-            mSensorManager.registerListener(this, accel, getSamplingPeriod());
+//            if (prefs.getBoolean("AccelSensor", true)) {
+//                mSensorManager.registerListener(this, accel, getSamplingPeriod());
+//            }
+            mSensorManager.registerListener(this, accel, samplingPeriod);
         }
+//        Sensor gyro = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+//        if (gyro != null) {
+//            mSensorManager.registerListener(this, gyro, samplingPeriod);
+//        }
+//        Sensor mag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+//        if (mag != null) {
+//            mSensorManager.registerListener(this, mag, samplingPeriod);
+//        }
     }
 
     @Override

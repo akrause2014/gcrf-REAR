@@ -40,6 +40,8 @@ public class REARApplication extends Application implements SensorEventListener,
         super.onCreate();
         File dir = new File(getExternalFilesDir(null), "rear");
         dir.mkdir();
+        File metadir = new File(getExternalFilesDir(null), "rear_meta");
+        metadir.mkdir();
         mDatabase = new DatabaseThread();
         mDatabase.setContext(this);
         mDatabase.start();

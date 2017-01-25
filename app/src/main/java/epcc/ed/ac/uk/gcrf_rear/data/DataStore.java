@@ -10,7 +10,9 @@ import android.util.Log;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
@@ -69,6 +71,7 @@ public class DataStore {
     private final long mElapsedTime;
     private final long mSystemTime;
     private final Context context;
+    private Long mFirstTimestamp = null;
     private Long mTimestamp = null;
 
     public DataStore(Context context) throws IOException {
@@ -105,6 +108,7 @@ public class DataStore {
         try {
             mOutputStream.flush();
             mOutputStream.close();
+            writeMetadata();
         }
         finally {
             Log.d("data store", "Closed file: " + mFileName + ". Wrote " + mNumRows + " records.");
@@ -123,6 +127,7 @@ public class DataStore {
 
     public void writeRecord(DataPoint dataPoint) throws IOException {
         mTimestamp = dataPoint.getTimestamp();
+        if (mFirstTimestamp == null) mFirstTimestamp = dataPoint.getTimestamp();
         mOutputStream.writeByte(VERSION);
         mOutputStream.writeByte(dataPoint.getSensorType().getType());
         mOutputStream.writeLong(dataPoint.getTimestamp());
@@ -141,6 +146,26 @@ public class DataStore {
         mOutputStream.writeDouble(location.getAltitude());
         mOutputStream.writeFloat(location.getAccuracy());
         mNumRows++;
+    }
+
+    private void writeMetadata() {
+        File dir = new File(context.getExternalFilesDir(null), "rear_meta");
+        try {
+            DataOutputStream os = new DataOutputStream(
+                    new BufferedOutputStream(new FileOutputStream(new File(dir, mFileName))));
+            os.writeInt(mNumRows); // number of records
+            os.writeLong(mSystemTime); // system time at time of timestamp
+            os.writeLong(mElapsedTime); // timestamp when data store was opened (close to first sensor timestamp)
+            os.writeLong(mTimestamp); // last timestamp from sensor
+            os.flush();
+            os.close();
+            Log.d("data store", "Wrote metadata: (records=" + mNumRows + ", systemTime=" + mSystemTime + ", elapsedTime=" + mElapsedTime + ", start=" + mFirstTimestamp + ", end=" + mTimestamp);
+            Logger.log(context, new Date() + ": Wrote metadata.");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getFileName() {

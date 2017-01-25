@@ -51,11 +51,12 @@ public class UploadDataActivity extends AppCompatActivity {
         }
         else {
             String registerURL = baseURL + "register/" + deviceId;
-            String dataURL = baseURL + "data/" + deviceId + "/sensor";
+            String dataURL = baseURL + "data/" + deviceId; //+ "/sensor";
+            String metaURL = baseURL + "metadata/" + deviceId;
             Log.d("upload", "uploading data to " + dataURL);
             CheckBox btnDeleteData = (CheckBox) findViewById(R.id.delete_upload_checkbox);
             boolean deleteAfterUpload = btnDeleteData.isChecked();
-            new UploadFile(registerURL, dataURL, deleteAfterUpload, filesAvailable).execute();
+            new UploadFile(registerURL, dataURL, metaURL, deleteAfterUpload, filesAvailable).execute();
         }
     }
 
@@ -67,6 +68,14 @@ public class UploadDataActivity extends AppCompatActivity {
         alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+                for (File file : datadir.listFiles()) {
+                    if (file.isFile()) {
+                        if (file.delete()) {
+                            filesAvailable--;
+                        }
+                    }
+                }
+                File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear_meta");
                 for (File file : datadir.listFiles()) {
                     if (file.isFile()) {
                         if (file.delete()) {
@@ -91,13 +100,15 @@ public class UploadDataActivity extends AppCompatActivity {
     {
         private final String registerURL;
         private final String dataURL;
+        private final String metaURL;
         private int filesAvailable;
         private final boolean deleteAfterUpload;
 
-        public UploadFile(String registerURL, String dataURL, boolean deleteAfterUpload, int filesAvailable) {
+        public UploadFile(String registerURL, String dataURL, String metaURL, boolean deleteAfterUpload, int filesAvailable) {
             this.deleteAfterUpload = deleteAfterUpload;
             this.registerURL = registerURL;
             this.dataURL = dataURL;
+            this.metaURL = metaURL;
             this.filesAvailable = filesAvailable;
         }
 
@@ -149,6 +160,7 @@ public class UploadDataActivity extends AppCompatActivity {
         @Override
         protected UploadResult doInBackground(Void... voids) {
             File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+            File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
             int numFiles = 0;
             try {
                 int status = DataUpload.isRegistered(registerURL);
@@ -166,7 +178,10 @@ public class UploadDataActivity extends AppCompatActivity {
             for (File file : datadir.listFiles()) {
                 if (file.isFile()) {
                     //                    Log.d("upload", "Reading file " + file.getName());
-                    if (DataUpload.uploadFile(dataURL, file)) {
+                    DataUpload.Response response = DataUpload.uploadFile(dataURL, file);
+                    if (response.success) {
+                        int upload = Integer.valueOf(response.response);
+                        DataUpload.uploadFile(metaURL + "/" + upload, new File(metadir, file.getName()));
                         numFiles++;
                         publishProgress(numFiles);
                         if (deleteAfterUpload) {
