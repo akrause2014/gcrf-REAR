@@ -160,7 +160,7 @@ public class UploadDataActivity extends AppCompatActivity {
         @Override
         protected UploadResult doInBackground(Void... voids) {
             File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
-            File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+            File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear_meta");
             int numFiles = 0;
             try {
                 int status = DataUpload.isRegistered(registerURL);
@@ -181,11 +181,13 @@ public class UploadDataActivity extends AppCompatActivity {
                     DataUpload.Response response = DataUpload.uploadFile(dataURL, file);
                     if (response.success) {
                         int upload = Integer.valueOf(response.response);
-                        DataUpload.uploadFile(metaURL + "/" + upload, new File(metadir, file.getName()));
+                        File metaFile = new File(metadir, file.getName());
+                        DataUpload.uploadFile(metaURL + "/" + upload, metaFile);
                         numFiles++;
                         publishProgress(numFiles);
                         if (deleteAfterUpload) {
                             file.delete();
+                            metaFile.delete();
                         }
                     }
                 }

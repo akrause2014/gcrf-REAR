@@ -151,16 +151,19 @@ public class DataStore {
     private void writeMetadata() {
         File dir = new File(context.getExternalFilesDir(null), "rear_meta");
         try {
+            Log.d("data store", "Writing metadata to " + new File(dir, mFileName));
             DataOutputStream os = new DataOutputStream(
                     new BufferedOutputStream(new FileOutputStream(new File(dir, mFileName))));
+            os.writeByte(VERSION);
             os.writeInt(mNumRows); // number of records
-            os.writeLong(mSystemTime); // system time at time of timestamp
-            os.writeLong(mElapsedTime); // timestamp when data store was opened (close to first sensor timestamp)
-            os.writeLong(mTimestamp); // last timestamp from sensor
+            os.writeLong(mSystemTime); // system time in millis
+            os.writeLong(mElapsedTime); // timestamp matching system time in millis
+            os.writeLong(mFirstTimestamp); // first timestamp from sensor in nanos
+            os.writeLong(mTimestamp); // last timestamp from sensor in nanos
             os.flush();
             os.close();
             Log.d("data store", "Wrote metadata: (records=" + mNumRows + ", systemTime=" + mSystemTime + ", elapsedTime=" + mElapsedTime + ", start=" + mFirstTimestamp + ", end=" + mTimestamp);
-            Logger.log(context, new Date() + ": Wrote metadata.");
+            Logger.log(context, new Date() + ": Wrote metadata.\n");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
