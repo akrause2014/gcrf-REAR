@@ -1,10 +1,12 @@
 package epcc.ed.ac.uk.gcrf_rear.data;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.location.Location;
 import android.os.Environment;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.BufferedOutputStream;
@@ -18,6 +20,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import epcc.ed.ac.uk.gcrf_rear.Logger;
+import epcc.ed.ac.uk.gcrf_rear.R;
 
 /**
  * Created by akrause on 11/11/2016.
@@ -89,6 +92,8 @@ public class DataStore {
         else {
             throw new IOException("Problem creating data store: External file storage is not writable");
         }
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        settings.edit().putString(context.getString(R.string.current_data_store_file), mFileName).commit();
     }
 
     private boolean isExternalStorageWritable() {
@@ -113,6 +118,8 @@ public class DataStore {
         finally {
             Log.d("data store", "Closed file: " + mFileName + ". Wrote " + mNumRows + " records.");
             Logger.log(context, new Date() + ": Closed file: " + mFileName + ". Wrote " + mNumRows + " records.\n");
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+            settings.edit().remove(context.getString(R.string.current_data_store_file)).commit();
             mNumRows = 0;
             mFileName = null;
         }

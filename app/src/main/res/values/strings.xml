@@ -15,4 +15,5 @@
     <string name="sensor_accel_check">AccelSensor</string>
     <string name="sensor_gyro_check">GyroSensor</string>
     <string name="sensor_magnet_check">MagnetSensor</string>
+    <string name="current_data_store_file">FileDataStore</string>
 </resources>

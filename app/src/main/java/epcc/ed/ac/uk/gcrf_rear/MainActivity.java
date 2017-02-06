@@ -1,15 +1,20 @@
 package epcc.ed.ac.uk.gcrf_rear;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -50,8 +55,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 rate = Integer.valueOf(value);
                 if (rate <= 0) rate = DEFAULT_SAMPLING_RATE;
-            }
-            catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 // ignore
             }
         }
@@ -68,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 //        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mDatabase = ((REARApplication)getApplication()).getDatabase();
-        mDatabase.setSensorTextView((TextView)findViewById(R.id.sensor_text));
+        mDatabase = ((REARApplication) getApplication()).getDatabase();
+        mDatabase.setSensorTextView((TextView) findViewById(R.id.sensor_text));
         final TextView sensorTextView = (TextView) findViewById(R.id.sensor_text);
         final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         final Sensor senAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -84,33 +88,23 @@ public class MainActivity extends AppCompatActivity {
                     startService(new Intent(MainActivity.this, SensorListenerService.class));
                     mDatabase.setFileStoreOn(true);
 
-//                    try {
-//                        final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-//                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener) getApplication());
-//                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) getApplication());
-//                        Log.d("main", "registered listener for GPS");
-//                        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//                        if (location != null) {
-//                            Log.d("location",
-//                                    "Lat/Lon: " + location.getLatitude() + "," + location.getLongitude()
-//                                            + "\nAccuracy: " + location.getAccuracy()
-//                                            + "\nAltitude: " + location.getAltitude());
-//                        }
-//                        else {
-//                            sensorTextView.setText("No GPS location available.\nLat/Lon: ---/---");
-//                        }
-//                    }
-//                    catch (SecurityException e) {
-//                        // check permissions
-//                        Log.e("main", "failed to register location listener", e);
-//                    }
-
+                    if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+                        return;
+                    }
+                    registerLocationListener();
                 } else {
                     Log.d("main", "unregistered listener");
                     stopService(new Intent(MainActivity.this, SensorListenerService.class));
                     mDatabase.setFileStoreOn(false);
                     mDatabase.close();
                     sensorTextView.setText("");
+                    final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                    locationManager.removeUpdates((LocationListener) getApplication());
                 }
             }
         });
@@ -191,6 +185,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+    {
+        switch(requestCode) {
+            case 1: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    registerLocationListener();
+                }
+            }
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_display: {
@@ -248,6 +255,23 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void registerLocationListener() {
+        final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener) getApplication());
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) getApplication());
+        Log.d("main", "registered listener for GPS");
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (location != null) {
+            Log.d("location",
+                    "Lat/Lon: " + location.getLatitude() + "," + location.getLongitude()
+                            + "\nAccuracy: " + location.getAccuracy()
+                            + "\nAltitude: " + location.getAltitude());
+        } else {
+            ((TextView) findViewById(R.id.sensor_text)).setText("No GPS location available.\nLat/Lon: ---/---");
+        }
+
     }
 
     public class RegisterDevice extends AsyncTask<Void, Void, String> {

@@ -30,8 +30,9 @@ public class AlarmReceiver extends BroadcastReceiver
             String registerURL = baseURL + "register/" + deviceId;
             String dataURL = baseURL + "data/" + deviceId; // + "/sensor";
             String metaURL = baseURL + "metadata/" + deviceId;
+            String excludeFile = settings.getString(context.getString(R.string.current_data_store_file), null);
             File datadir = new File(context.getExternalFilesDir(null), "rear");
-            new UploadFile(registerURL, dataURL, datadir, context).execute();
+            new UploadFile(registerURL, metaURL, dataURL, datadir, excludeFile, context).execute();
         }
     }
 
@@ -39,15 +40,19 @@ public class AlarmReceiver extends BroadcastReceiver
 
         private final String registerURL;
         private final String url;
+        private final String metaURL;
         private final File datadir;
         private final File metadir;
+        private final String excludeFile;
         private final Context context;
 
-        public UploadFile(String registerURL, String url, File datadir, Context context) {
+        public UploadFile(String registerURL, String metaurl, String url, File datadir, String excludeFile, Context context) {
             this.registerURL = registerURL;
+            this.metaURL = metaurl;
             this.url = url;
             this.datadir = datadir;
             this.context = context;
+            this.excludeFile = excludeFile;
             this.metadir = new File(context.getExternalFilesDir(null), "rear_meta");
         }
         @Override
@@ -68,13 +73,20 @@ public class AlarmReceiver extends BroadcastReceiver
                 return null;
             }
 
+            Log.d("upload", "excluding file: " + excludeFile);
             for (File file : datadir.listFiles()) {
-                if (file.isFile()) {
+                File metafile = new File(metadir, file.getName());
+                if (file.isFile() && !file.getName().equals(excludeFile)) {
                     DataUpload.Response response = DataUpload.uploadFile(url, file);
                     if (response.success) {
                         try {
                             int upload = Integer.valueOf(response.response);
-                            DataUpload.uploadFile(url + "/" + upload, new File(metadir, file.getName()));
+                            if (metafile.isFile()) {
+                                DataUpload.uploadFile(metaURL + "/" + upload, metafile);
+                            }
+                            else {
+                                Log.d("data upload", "Failed to upload metadata: not a file ");
+                            }
                         } catch (NumberFormatException e) {
                             // wrong response
                             Log.d("data upload", "Unexpected response: " + response.response);
