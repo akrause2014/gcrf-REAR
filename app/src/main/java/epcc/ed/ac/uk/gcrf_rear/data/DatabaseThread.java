@@ -1,6 +1,7 @@
 package epcc.ed.ac.uk.gcrf_rear.data;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -8,6 +9,7 @@ import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.widget.TextView;
@@ -16,6 +18,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+import epcc.ed.ac.uk.gcrf_rear.R;
 
 /**
  * Created by akrause on 09/11/2016.
@@ -68,9 +72,25 @@ public class DatabaseThread extends Thread {
     }
 
     public void setDataSize(int dataSize) {
+        Log.d("database", "set data size to: " + dataSize);
+
         if (dataSize > 0) {
-            Log.d("database", "set data size to: " + dataSize);
-            mFileStoreLength = dataSize*60l*1000000000l; // minutes
+//            mFileStoreLength = dataSize*60l*1000000000l; // minutes
+
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+            String value = settings.getString(mContext.getString(R.string.pref_key_frequency), null);
+            int freq = 50;
+            if (value != null) {
+                try {
+                    freq = Integer.valueOf(value);
+                    if (freq <= 0) freq = 50;
+                } catch (NumberFormatException e) {
+                    // ignore
+                    Log.d("database", "Cannot parse: " + value);
+                }
+            }
+            mFileStoreLength = dataSize * 60 * freq;
+            Log.d("database", "max number of records in file store: " + mFileStoreLength);
         }
     }
 
@@ -101,7 +121,7 @@ public class DatabaseThread extends Thread {
                         startTime = timestamp;
                         Log.d("upload", "New data store: "+ startTime);
                     }
-                    else if ((timestamp-startTime) > mFileStoreLength) {
+                    else if (mCurrentStore.getNumRows() >= mFileStoreLength) {
                         startTime = timestamp;
                         mCurrentStore.close();
                         mCurrentStore = new DataStore(mContext);

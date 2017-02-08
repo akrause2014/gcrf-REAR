@@ -192,4 +192,12 @@ public class DataStore {
     public Long getTimestamp() {
         return mTimestamp;
     }
+
+    public Long getFirstTimestamp() {
+        return mFirstTimestamp;
+    }
+
+    public int getNumRows() {
+        return mNumRows;
+    }
 }
