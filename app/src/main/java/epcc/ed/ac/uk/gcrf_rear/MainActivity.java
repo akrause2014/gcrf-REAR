@@ -13,6 +13,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
@@ -21,6 +22,7 @@ import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,11 +34,13 @@ import android.widget.ToggleButton;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
 import epcc.ed.ac.uk.gcrf_rear.sensor.SensorListenerService;
@@ -179,8 +183,15 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void registerDevice(String password) {
+    private void registerDevice(String name, String password) {
         String url = getString(R.string.base_url) + "register";
+        if (name != null && !name.isEmpty()) {
+            try {
+                url += ("?name=" + URLEncoder.encode(name, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                Log.e("register", "name failed to encode", e);
+            }
+        }
         new RegisterDevice(url, password).execute();
     }
 
@@ -219,16 +230,16 @@ public class MainActivity extends AppCompatActivity {
 
                 AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
                 alert.setTitle("Register Device");
-                alert.setMessage("Enter password:");
-
-                final EditText input = new EditText(MainActivity.this);
-                input.setTransformationMethod(new PasswordTransformationMethod());
-                alert.setView(input);
-
+                LayoutInflater inflater = this.getLayoutInflater();
+                View dialogView = inflater.inflate(R.layout.dialog_register, null);
+                alert.setView(dialogView);
+                final EditText input = (EditText) dialogView.findViewById(R.id.register_password);
+                final EditText nameInput = (EditText) dialogView.findViewById(R.id.register_name);
                 alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String password = input.getEditableText().toString();
-                        MainActivity.this.registerDevice(password);
+                        String name = nameInput.getEditableText().toString();
+                        MainActivity.this.registerDevice(name, password);
                     }
                 });
                 alert.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -237,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 AlertDialog alertDialog = alert.create();
+                nameInput.setText(Build.MODEL);
                 alertDialog.show();
                 return true;
             }

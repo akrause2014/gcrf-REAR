@@ -96,7 +96,9 @@ public class AlarmReceiver extends BroadcastReceiver
                     }
                 }
             }
-            Log.d("upload", "Data upload complete: " + numFiles + " files");
+            if (numFiles > 0) {
+                Log.d("upload", "Data upload complete: " + numFiles + " files");
+            }
             return numFiles;
         }
 
