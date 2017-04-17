@@ -35,8 +35,9 @@ public class DataStore {
         ACCELEROMETER(1),
         GYROSCOPE(2),
         MAGNETIC_FIELD(3),
-        LOCATION(4),
-        TIME(5);
+        LOCATION_GPS(4),
+        TIME(5),
+        LOCATION_NETWORK(6);
 
         private int type;
         SensorType(int type) {
@@ -89,7 +90,7 @@ public class DataStore {
             Log.d("data store", "opening file: " + mFileName + " at " + (new Date()));
             openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
             writeTime(mElapsedTime, mSystemTime);
-            Logger.log(context, new Date() + ": Created new data store.\n");
+            //Logger.log(context, new Date() + ": Created new data store.\n");
         }
         else {
             throw new IOException("Problem creating data store: External file storage is not writable");
@@ -119,7 +120,7 @@ public class DataStore {
         }
         finally {
             Log.d("data store", "Closed file: " + mFileName + ". Wrote " + mNumRows + " records.");
-            Logger.log(context, new Date() + ": Closed file: " + mFileName + ". Wrote " + mNumRows + " records.\n");
+            //Logger.log(context, new Date() + ": Closed file: " + mFileName + ". Wrote " + mNumRows + " records.\n");
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
             settings.edit().remove(context.getString(R.string.current_data_store_file)).commit();
             mNumRows = 0;
@@ -127,6 +128,12 @@ public class DataStore {
         }
     }
 
+    /**
+     * Write matching record for elapsed time and system time.
+     * @param elapsedTime elapsed time in millis
+     * @param systemTime system time in millis
+     * @throws IOException
+     */
     public void writeTime(long elapsedTime, long systemTime) throws IOException {
         mOutputStream.writeByte(VERSION);
         mOutputStream.writeByte(SensorType.TIME.getType());
@@ -149,11 +156,16 @@ public class DataStore {
     public void writeLocation(Location location) throws IOException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             if (LocationManager.GPS_PROVIDER.equals(location.getProvider())) {
-                writeTime(location.getElapsedRealtimeNanos(), location.getTime());
+                // writeTime expects elapsed realtime in millis
+                writeTime(location.getElapsedRealtimeNanos()/1000000, location.getTime());
             }
         }
         mOutputStream.writeByte(VERSION);
-        mOutputStream.writeByte(SensorType.LOCATION.getType());
+        SensorType type = SensorType.LOCATION_NETWORK;
+        if (location.getProvider() == LocationManager.GPS_PROVIDER) {
+            type = SensorType.LOCATION_GPS;
+        }
+        mOutputStream.writeByte(type.getType());
         mOutputStream.writeLong(location.getTime());
         mOutputStream.writeDouble(location.getLatitude());
         mOutputStream.writeDouble(location.getLongitude());
@@ -177,7 +189,7 @@ public class DataStore {
             os.flush();
             os.close();
             Log.d("data store", "Wrote metadata: (records=" + mNumRows + ", systemTime=" + mSystemTime + ", elapsedTime=" + mElapsedTime + ", start=" + mFirstTimestamp + ", end=" + mTimestamp);
-            Logger.log(context, new Date() + ": Wrote metadata.\n");
+            //Logger.log(context, new Date() + ": Wrote metadata.\n");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

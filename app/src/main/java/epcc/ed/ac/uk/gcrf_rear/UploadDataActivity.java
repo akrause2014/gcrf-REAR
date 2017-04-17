@@ -167,12 +167,12 @@ public class UploadDataActivity extends AppCompatActivity {
                 UploadResult.Status uploadStatus = UploadResult.Status.valueOf(status);
                 if (uploadStatus != UploadResult.Status.OK) {
                     Log.d("upload", "pre check failed: status = " + status);
-                    Logger.log(UploadDataActivity.this, "Upload failed: HTTP status = " + status + "\n");
+                    //Logger.log(UploadDataActivity.this, "Upload failed: HTTP status = " + status + "\n");
                     return new UploadResult(numFiles, uploadStatus);
                 }
             } catch (Exception e) {
                 Log.e("upload", "pre check failed", e);
-                Logger.log(UploadDataActivity.this, "Upload failed: error = " + e.getClass().getName() + ": " + e.getMessage() + "\n");
+                //Logger.log(UploadDataActivity.this, "Upload failed: error = " + e.getClass().getName() + ": " + e.getMessage() + "\n");
                 return new UploadResult(numFiles, UploadResult.Status.valueOf(0));
             }
             for (File file : datadir.listFiles()) {

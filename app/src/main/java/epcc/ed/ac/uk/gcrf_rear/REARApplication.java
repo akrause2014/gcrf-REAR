@@ -81,9 +81,9 @@ public class REARApplication extends Application implements SensorEventListener,
 
     @Override
     public void onLocationChanged(Location location) {
-        final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         Log.d("location", "Location: " + location);
         if (isBetterLocation(location, mCurrentLocation)) {
+            final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             mCurrentLocation = location;
             if (location.getAccuracy() < 10.0) {
                 try {

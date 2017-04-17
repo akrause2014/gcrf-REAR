@@ -104,8 +104,9 @@ public class AlarmReceiver extends BroadcastReceiver
 
         @Override
         protected void onPostExecute(Integer numFiles) {
-
-            Logger.log(context, "Data upload complete: " + numFiles + " files\n");
+            if (numFiles != null && numFiles > 0) {
+                Logger.log(context, "Data upload complete: " + numFiles + " files\n");
+            }
 
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
             SharedPreferences.Editor editor = settings.edit();
