@@ -22,19 +22,28 @@ import epcc.ed.ac.uk.gcrf_rear.data.DataUpload;
 public class UploadDataActivity extends AppCompatActivity {
 
     private int filesAvailable;
+    private int backupFiles;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_data);
-        File datadir = new File(getExternalFilesDir(null), "rear");
+//        File datadir = new File(getExternalFilesDir(null), "rear");
+        File datadir = REARApplication.getDataDir(this);
         for (File file : datadir.listFiles()) {
             if (file.isFile()) {
                 filesAvailable++;
             }
         }
+        backupFiles = 0;
+        File backupdir = REARApplication.getBackupDir(this);
+        for (File file : backupdir.listFiles()) {
+            if (file.isFile() && !file.getName().endsWith("meta")) {
+                backupFiles++;
+            }
+        }
         TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
-        progressText.setText("Number of data files: " + filesAvailable);
+        progressText.setText("Number of data files: " + filesAvailable + ", backup: " + backupFiles);
     }
 
     public void uploadData(View view) {
@@ -67,7 +76,8 @@ public class UploadDataActivity extends AppCompatActivity {
         alert.setMessage("Remove all data?");
         alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+//                File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+                File datadir = REARApplication.getDataDir(UploadDataActivity.this);
                 for (File file : datadir.listFiles()) {
                     if (file.isFile()) {
                         if (file.delete()) {
@@ -75,11 +85,12 @@ public class UploadDataActivity extends AppCompatActivity {
                         }
                     }
                 }
-                File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear_meta");
+//                File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear_meta");
+                File metadir = REARApplication.getMetaDir(UploadDataActivity.this);
                 for (File file : datadir.listFiles()) {
                     if (file.isFile()) {
                         if (file.delete()) {
-                            filesAvailable--;
+//                            filesAvailable--;
                         }
                     }
                 }
@@ -159,8 +170,10 @@ public class UploadDataActivity extends AppCompatActivity {
 
         @Override
         protected UploadResult doInBackground(Void... voids) {
-            File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
-            File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear_meta");
+//            File datadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear");
+//            File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear_meta");
+            File datadir = REARApplication.getDataDir(UploadDataActivity.this);
+            File metadir = REARApplication.getMetaDir(UploadDataActivity.this);
             int numFiles = 0;
             try {
                 int status = DataUpload.isRegistered(registerURL);

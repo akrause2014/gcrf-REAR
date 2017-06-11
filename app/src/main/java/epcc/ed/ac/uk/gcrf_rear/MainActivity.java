@@ -100,15 +100,15 @@ public class MainActivity extends AppCompatActivity {
                                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
                         return;
                     }
-                    registerLocationListener();
+//                    registerLocationListener();
                 } else {
                     Log.d("main", "unregistered listener");
                     stopService(new Intent(MainActivity.this, SensorListenerService.class));
                     mDatabase.setFileStoreOn(false);
                     mDatabase.close();
                     sensorTextView.setText("");
-                    final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                    locationManager.removeUpdates((LocationListener) getApplication());
+//                    final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+//                    locationManager.removeUpdates((LocationListener) getApplication());
                 }
             }
         });
@@ -184,7 +184,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerDevice(String name, String password) {
-        String url = getString(R.string.base_url) + "register";
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        String url = settings.getString(getString(R.string.pref_key_upload_url), getString(R.string.base_url)) + "register";
+
         if (name != null && !name.isEmpty()) {
             try {
                 url += ("?name=" + URLEncoder.encode(name, "UTF-8"));
@@ -202,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
             case 1: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    registerLocationListener();
+//                    registerLocationListener();
                 }
             }
         }

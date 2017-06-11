@@ -24,19 +24,19 @@ public class Logger {
     public static Writer getLogWriter(Context context, boolean append) throws IOException
     {
         String fileName = context.getString(R.string.log_file);
-        File dir = context.getExternalFilesDir(null);
+        File dir = REARApplication.getStorageDir(context);
         return new BufferedWriter(new FileWriter(new File(dir, fileName), append));
     }
 
     public static BufferedReader getLogReader(Context context) throws FileNotFoundException {
         String fileName = context.getString(R.string.log_file);
-        File dir = context.getExternalFilesDir(null);
+        File dir = REARApplication.getStorageDir(context);
         return new BufferedReader(new FileReader(new File(dir, fileName)));
     }
 
     public static boolean deleteLogs(Context context) {
         String fileName = context.getString(R.string.log_file);
-        File dir = context.getExternalFilesDir(null);
+        File dir = REARApplication.getStorageDir(context);
         return new File(dir, fileName).delete();
     }
 

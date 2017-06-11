@@ -12,6 +12,7 @@ import java.io.File;
 
 import epcc.ed.ac.uk.gcrf_rear.Logger;
 import epcc.ed.ac.uk.gcrf_rear.R;
+import epcc.ed.ac.uk.gcrf_rear.REARApplication;
 import epcc.ed.ac.uk.gcrf_rear.UploadDataActivity;
 
 /**
@@ -22,7 +23,7 @@ public class AlarmReceiver extends BroadcastReceiver
 {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d("upload alarm", "uploading data files");
+//        Log.d("upload alarm", "uploading data files");
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         String baseURL = settings.getString(context.getString(R.string.pref_key_upload_url), "");
         String deviceId = settings.getString(context.getString(R.string.pref_key_upload_device), null);
@@ -31,7 +32,8 @@ public class AlarmReceiver extends BroadcastReceiver
             String dataURL = baseURL + "data/" + deviceId; // + "/sensor";
             String metaURL = baseURL + "metadata/" + deviceId;
             String excludeFile = settings.getString(context.getString(R.string.current_data_store_file), null);
-            File datadir = new File(context.getExternalFilesDir(null), "rear");
+//            File datadir = new File(context.getExternalFilesDir(null), "rear");
+            File datadir = REARApplication.getDataDir(context);
             new UploadFile(registerURL, metaURL, dataURL, datadir, excludeFile, context).execute();
         }
     }
@@ -43,6 +45,7 @@ public class AlarmReceiver extends BroadcastReceiver
         private final String metaURL;
         private final File datadir;
         private final File metadir;
+        private final File backupdir;
         private final String excludeFile;
         private final Context context;
 
@@ -53,7 +56,10 @@ public class AlarmReceiver extends BroadcastReceiver
             this.datadir = datadir;
             this.context = context;
             this.excludeFile = excludeFile;
-            this.metadir = new File(context.getExternalFilesDir(null), "rear_meta");
+            this.metadir = REARApplication.getMetaDir(context);
+            this.backupdir = REARApplication.getBackupDir(context);
+//            this.metadir = new File(context.getExternalFilesDir(null), "rear_meta");
+//            this.backupdir = new File(context.getExternalFilesDir(null), "rear_backup");
         }
         @Override
         protected Integer doInBackground(Void... voids) {
@@ -62,18 +68,18 @@ public class AlarmReceiver extends BroadcastReceiver
                 int status = DataUpload.isRegistered(registerURL);
                 UploadDataActivity.UploadResult.Status uploadStatus = UploadDataActivity.UploadResult.Status.valueOf(status);
                 if (uploadStatus != UploadDataActivity.UploadResult.Status.OK) {
-                    Log.d("upload", "pre check failed: HTTP status = " + status);
-                    Logger.log(context, "Upload failed: HTTP status = " + status + "\n");
+//                    Log.d("upload", "pre check failed: HTTP status = " + status);
+//                    Logger.log(context, "Upload failed: HTTP status = " + status + "\n");
                     return null;
                 }
             }
             catch (Exception e) {
-                Log.e("upload", "pre check failed", e);
-                Logger.log(context, "Upload failed: error = " + e.getClass().getName() + ": " + e.getMessage() + "\n");
+//                Log.e("upload", "pre check failed", e);
+//                Logger.log(context, "Upload failed: error = " + e.getClass().getName() + ": " + e.getMessage() + "\n");
                 return null;
             }
 
-            Log.d("upload", "excluding file: " + excludeFile);
+//            Log.d("upload", "excluding file: " + excludeFile);
             for (File file : datadir.listFiles()) {
                 File metafile = new File(metadir, file.getName());
                 if (file.isFile() && !file.getName().equals(excludeFile)) {
@@ -84,20 +90,20 @@ public class AlarmReceiver extends BroadcastReceiver
                             if (metafile.isFile()) {
                                 DataUpload.uploadFile(metaURL + "/" + upload, metafile);
                             }
-                            else {
-                                Log.d("data upload", "Failed to upload metadata: not a file ");
-                            }
+//                            else {
+//                                Log.d("data upload", "Failed to upload metadata: not a file ");
+//                            }
                         } catch (NumberFormatException e) {
                             // wrong response
-                            Log.d("data upload", "Unexpected response: " + response.response);
+//                            Log.d("data upload", "Unexpected response: " + response.response);
                         }
                         numFiles++;
-                        file.delete();
+//                        file.delete();
+//                        metafile.delete();
+                        file.renameTo(new File(backupdir, file.getName()));
+                        metafile.renameTo(new File(backupdir, file.getName() + ".meta"));
                     }
                 }
-            }
-            if (numFiles > 0) {
-                Log.d("upload", "Data upload complete: " + numFiles + " files");
             }
             return numFiles;
         }
@@ -105,7 +111,8 @@ public class AlarmReceiver extends BroadcastReceiver
         @Override
         protected void onPostExecute(Integer numFiles) {
             if (numFiles != null && numFiles > 0) {
-                Logger.log(context, "Data upload complete: " + numFiles + " files\n");
+                Log.d("upload", "Data upload complete: " + numFiles + " files");
+//                Logger.log(context, "Data upload complete: " + numFiles + " files\n");
             }
 
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);

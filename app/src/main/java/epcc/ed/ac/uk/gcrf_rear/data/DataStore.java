@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import epcc.ed.ac.uk.gcrf_rear.Logger;
 import epcc.ed.ac.uk.gcrf_rear.R;
+import epcc.ed.ac.uk.gcrf_rear.REARApplication;
 
 /**
  * Created by akrause on 11/11/2016.
@@ -88,7 +89,8 @@ public class DataStore {
         if (isExternalStorageWritable()) {
             mFileName = UUID.randomUUID().toString() + ".dat";
             Log.d("data store", "opening file: " + mFileName + " at " + (new Date()));
-            openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
+//            openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
+            openFile(REARApplication.getDataDir(context), mFileName);
             writeTime(mElapsedTime, mSystemTime);
             //Logger.log(context, new Date() + ": Created new data store.\n");
         }
@@ -108,7 +110,9 @@ public class DataStore {
     }
 
     private DataOutputStream openFile(File dir, String name) throws IOException {
-        mOutputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir, name))));
+        File f = new File(dir, name);
+        Log.d("data store", "Opening file: " + f.getAbsolutePath());
+        mOutputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
         return mOutputStream;
     }
 
@@ -175,7 +179,8 @@ public class DataStore {
     }
 
     private void writeMetadata() {
-        File dir = new File(context.getExternalFilesDir(null), "rear_meta");
+//        File dir = new File(context.getExternalFilesDir(null), "rear_meta");
+        File dir = REARApplication.getMetaDir(context);
         try {
             Log.d("data store", "Writing metadata to " + new File(dir, mFileName));
             DataOutputStream os = new DataOutputStream(
@@ -205,11 +210,8 @@ public class DataStore {
         return mTimestamp;
     }
 
-    public Long getFirstTimestamp() {
-        return mFirstTimestamp;
-    }
-
     public int getNumRows() {
         return mNumRows;
     }
+
 }

@@ -24,17 +24,6 @@ import java.net.URL;
 public class DataUpload
 {
 
-    public static boolean exists(Context context, String name) {
-        return new File(context.getExternalFilesDir(null), name).isFile();
-    }
-
-    public static DataInputStream open(Context context, String name) throws FileNotFoundException {
-        return new DataInputStream(
-                new BufferedInputStream(
-                        new FileInputStream(
-                                new File(context.getExternalFilesDir(null), name))));
-    }
-
     public static DataInputStream open(File file) throws FileNotFoundException {
         return new DataInputStream(
                 new BufferedInputStream(new FileInputStream(file)));

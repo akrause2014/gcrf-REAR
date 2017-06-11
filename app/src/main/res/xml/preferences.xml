@@ -25,7 +25,7 @@
         <android.support.v7.preference.EditTextPreference
             android:key="@string/pref_key_upload_url"
             android:title="URL for data upload"
-            android:defaultValue="http://129.215.213.248:8080/gcrfREAR/webapi/gcrf-REAR/" />
+            android:defaultValue="http://dir-vm4.epcc.ed.ac.uk:8080/gcrfREAR/webapi/gcrf-REAR/" />
         <android.support.v7.preference.EditTextPreference
             android:key="@string/pref_key_upload_device"
             android:title="Device ID"

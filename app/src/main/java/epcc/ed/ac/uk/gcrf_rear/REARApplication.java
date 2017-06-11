@@ -13,12 +13,14 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
+import java.util.Arrays;
 
 import epcc.ed.ac.uk.gcrf_rear.data.AlarmReceiver;
 import epcc.ed.ac.uk.gcrf_rear.data.DataPoint;
@@ -35,13 +37,44 @@ public class REARApplication extends Application implements SensorEventListener,
     private Location mCurrentLocation = null;
     private long mLocationUpdates;
 
+    public static File getStorageDir(Context context) {
+        File root = new File("/storage/extSdCard");
+        if (!root.exists() || !root.canWrite()) {
+            root = context.getExternalFilesDir(null);
+        }
+        File dir = new File(root, "gcrfREAR");
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+        return dir;
+    }
+
+    public static File getDataDir(Context context) {
+        return new File(getStorageDir(context), "rear");
+    }
+
+    public static File getMetaDir(Context context) {
+        return new File(getStorageDir(context), "rear_meta");
+    }
+
+    public static File getBackupDir(Context context) {
+        return new File(getStorageDir(context), "rear_backup");
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
-        File dir = new File(getExternalFilesDir(null), "rear");
-        dir.mkdir();
-        File metadir = new File(getExternalFilesDir(null), "rear_meta");
-        metadir.mkdir();
+//        File dir = new File(getExternalFilesDir(null), "rear");
+//        dir.mkdir();
+//        File metadir = new File(getExternalFilesDir(null), "rear_meta");
+//        metadir.mkdir();
+//        File backupdir = new File(getExternalFilesDir(null), "rear_backup");
+//        backupdir.mkdir();
+
+        getDataDir(this).mkdir();
+        getMetaDir(this).mkdir();
+        getBackupDir(this).mkdir();
+
         mDatabase = new DatabaseThread();
         mDatabase.setContext(this);
         mDatabase.start();
