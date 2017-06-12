@@ -72,12 +72,6 @@ public class REARApplication extends Application implements SensorEventListener,
     @Override
     public void onCreate() {
         super.onCreate();
-//        File dir = new File(getExternalFilesDir(null), "rear");
-//        dir.mkdir();
-//        File metadir = new File(getExternalFilesDir(null), "rear_meta");
-//        metadir.mkdir();
-//        File backupdir = new File(getExternalFilesDir(null), "rear_backup");
-//        backupdir.mkdir();
 
         getDataDir(this).mkdir();
         getMetaDir(this).mkdir();

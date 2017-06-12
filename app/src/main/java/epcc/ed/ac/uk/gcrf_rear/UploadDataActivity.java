@@ -37,9 +37,14 @@ public class UploadDataActivity extends AppCompatActivity {
         }
         backupFiles = 0;
         File backupdir = REARApplication.getBackupDir(this);
-        for (File file : backupdir.listFiles()) {
-            if (file.isFile() && !file.getName().endsWith("meta")) {
-                backupFiles++;
+        for (File dir : backupdir.listFiles()) {
+            // iterate over all week directories
+            if (dir.isDirectory()) {
+                for (File file : dir.listFiles()) {
+                    if (file.isFile() && !file.getName().endsWith("meta")) {
+                        backupFiles++;
+                    }
+                }
             }
         }
         TextView progressText = (TextView)findViewById(R.id.upload_progress_text);

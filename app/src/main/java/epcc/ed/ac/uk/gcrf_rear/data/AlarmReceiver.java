@@ -9,8 +9,11 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 
 import epcc.ed.ac.uk.gcrf_rear.Logger;
 import epcc.ed.ac.uk.gcrf_rear.R;
@@ -23,25 +26,21 @@ import epcc.ed.ac.uk.gcrf_rear.UploadDataActivity;
 
 public class AlarmReceiver extends BroadcastReceiver
 {
+
+    DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-ww");
+
+    void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : fileOrDirectory.listFiles())
+                deleteRecursive(child);
+
+        fileOrDirectory.delete();
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
 //        Log.d("upload alarm", "uploading data files");
 
-//        if (REARApplication.getUsableSpace() < 1000000000) { // less than 1 GB
-//            final File[] sortedByDate = REARApplication.getBackupDir(context).listFiles();
-//            if (sortedByDate != null && sortedByDate.length > 1) {
-//                Arrays.sort(sortedByDate, new Comparator<File>() {
-//                    @Override
-//                    public int compare(File object1, File object2) {
-//                        return Long.valueOf(object1.lastModified()).compareTo(
-//                                Long.valueOf(object2.lastModified()));
-//                    }
-//                });
-//            }
-//            for (int i=0; i<sortedByDate.length/10; i++) {
-//                sortedByDate[i].delete();
-//            }
-//        }
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         String baseURL = settings.getString(context.getString(R.string.pref_key_upload_url), "");
         String deviceId = settings.getString(context.getString(R.string.pref_key_upload_device), null);
@@ -53,6 +52,22 @@ public class AlarmReceiver extends BroadcastReceiver
             File datadir = REARApplication.getDataDir(context);
             new UploadFile(registerURL, metaURL, dataURL, datadir, excludeFile, context).execute();
         }
+
+        // delete the oldest week if there is not enough space on the SD card
+        if (REARApplication.getUsableSpace() < 1000000000l) { // less than 1 GB
+            final File[] weekDirs = REARApplication.getBackupDir(context).listFiles();
+            if (weekDirs != null && weekDirs.length > 0) {
+                File min = weekDirs[0];
+                for (File f : weekDirs) {
+                    if (f.isDirectory() && f.getName().compareTo(min.getName()) < 0) {
+                        min = f;
+                    }
+                }
+//                Log.d("alarm receiver", "Deleting backup directory: " + min.getAbsolutePath());
+                deleteRecursive(min);
+            }
+        }
+
     }
 
     public class UploadFile extends AsyncTask<Void, Void, Integer> {
@@ -93,17 +108,22 @@ public class AlarmReceiver extends BroadcastReceiver
 //                Logger.log(context, "Upload failed: error = " + e.getClass().getName() + ": " + e.getMessage() + "\n");
                 return null;
             }
-
+            File weekDir = new File(backupdir, DATE_FORMAT.format(new Date()));
+            if (!weekDir.exists()) {
+                weekDir.mkdir();
+            }
 //            Log.d("upload", "excluding file: " + excludeFile);
             for (File file : datadir.listFiles()) {
-                File metafile = new File(metadir, file.getName());
                 if (file.isFile() && !file.getName().equals(excludeFile)) {
                     DataUpload.Response response = DataUpload.uploadFile(url, file);
                     if (response.success) {
                         try {
                             int upload = Integer.valueOf(response.response);
+                            File metafile = new File(metadir, file.getName());
                             if (metafile.isFile()) {
-                                DataUpload.uploadFile(metaURL + "/" + upload, metafile);
+//                                DataUpload.uploadFile(metaURL + "/" + upload, metafile);
+                                metafile.delete();
+
                             }
 //                            else {
 //                                Log.d("data upload", "Failed to upload metadata: not a file ");
@@ -113,9 +133,8 @@ public class AlarmReceiver extends BroadcastReceiver
 //                            Log.d("data upload", "Unexpected response: " + response.response);
                         }
                         numFiles++;
-                        file.delete();
-                        metafile.delete();
-//                        file.renameTo(new File(backupdir, file.getName()));
+//                        file.delete();
+                        file.renameTo(new File(weekDir, file.getName()));
 //                        metafile.renameTo(new File(backupdir, file.getName() + ".meta"));
                     }
                 }

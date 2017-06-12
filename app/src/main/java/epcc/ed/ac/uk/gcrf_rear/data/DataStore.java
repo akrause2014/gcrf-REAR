@@ -182,7 +182,7 @@ public class DataStore {
 //        File dir = new File(context.getExternalFilesDir(null), "rear_meta");
         File dir = REARApplication.getMetaDir(context);
         try {
-            Log.d("data store", "Writing metadata to " + new File(dir, mFileName));
+//            Log.d("data store", "Writing metadata to " + new File(dir, mFileName));
             DataOutputStream os = new DataOutputStream(
                     new BufferedOutputStream(new FileOutputStream(new File(dir, mFileName))));
             os.writeByte(VERSION);
@@ -193,7 +193,7 @@ public class DataStore {
             os.writeLong(mTimestamp); // last timestamp from sensor in nanos
             os.flush();
             os.close();
-            Log.d("data store", "Wrote metadata: (records=" + mNumRows + ", systemTime=" + mSystemTime + ", elapsedTime=" + mElapsedTime + ", start=" + mFirstTimestamp + ", end=" + mTimestamp);
+//            Log.d("data store", "Wrote metadata: (records=" + mNumRows + ", systemTime=" + mSystemTime + ", elapsedTime=" + mElapsedTime + ", start=" + mFirstTimestamp + ", end=" + mTimestamp);
             //Logger.log(context, new Date() + ": Wrote metadata.\n");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
