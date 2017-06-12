@@ -49,6 +49,14 @@ public class REARApplication extends Application implements SensorEventListener,
         return dir;
     }
 
+    public static long getUsableSpace() {
+        File root = new File("/storage/extSdCard");
+        if (root.exists()) {
+            return root.getUsableSpace();
+        }
+        else return 0L;
+    }
+
     public static File getDataDir(Context context) {
         return new File(getStorageDir(context), "rear");
     }

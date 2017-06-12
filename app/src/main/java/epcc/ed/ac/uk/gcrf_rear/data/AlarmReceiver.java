@@ -9,6 +9,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import epcc.ed.ac.uk.gcrf_rear.Logger;
 import epcc.ed.ac.uk.gcrf_rear.R;
@@ -24,6 +26,22 @@ public class AlarmReceiver extends BroadcastReceiver
     @Override
     public void onReceive(Context context, Intent intent) {
 //        Log.d("upload alarm", "uploading data files");
+
+//        if (REARApplication.getUsableSpace() < 1000000000) { // less than 1 GB
+//            final File[] sortedByDate = REARApplication.getBackupDir(context).listFiles();
+//            if (sortedByDate != null && sortedByDate.length > 1) {
+//                Arrays.sort(sortedByDate, new Comparator<File>() {
+//                    @Override
+//                    public int compare(File object1, File object2) {
+//                        return Long.valueOf(object1.lastModified()).compareTo(
+//                                Long.valueOf(object2.lastModified()));
+//                    }
+//                });
+//            }
+//            for (int i=0; i<sortedByDate.length/10; i++) {
+//                sortedByDate[i].delete();
+//            }
+//        }
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         String baseURL = settings.getString(context.getString(R.string.pref_key_upload_url), "");
         String deviceId = settings.getString(context.getString(R.string.pref_key_upload_device), null);
@@ -32,7 +50,6 @@ public class AlarmReceiver extends BroadcastReceiver
             String dataURL = baseURL + "data/" + deviceId; // + "/sensor";
             String metaURL = baseURL + "metadata/" + deviceId;
             String excludeFile = settings.getString(context.getString(R.string.current_data_store_file), null);
-//            File datadir = new File(context.getExternalFilesDir(null), "rear");
             File datadir = REARApplication.getDataDir(context);
             new UploadFile(registerURL, metaURL, dataURL, datadir, excludeFile, context).execute();
         }
@@ -58,8 +75,6 @@ public class AlarmReceiver extends BroadcastReceiver
             this.excludeFile = excludeFile;
             this.metadir = REARApplication.getMetaDir(context);
             this.backupdir = REARApplication.getBackupDir(context);
-//            this.metadir = new File(context.getExternalFilesDir(null), "rear_meta");
-//            this.backupdir = new File(context.getExternalFilesDir(null), "rear_backup");
         }
         @Override
         protected Integer doInBackground(Void... voids) {
@@ -98,10 +113,10 @@ public class AlarmReceiver extends BroadcastReceiver
 //                            Log.d("data upload", "Unexpected response: " + response.response);
                         }
                         numFiles++;
-//                        file.delete();
-//                        metafile.delete();
-                        file.renameTo(new File(backupdir, file.getName()));
-                        metafile.renameTo(new File(backupdir, file.getName() + ".meta"));
+                        file.delete();
+                        metafile.delete();
+//                        file.renameTo(new File(backupdir, file.getName()));
+//                        metafile.renameTo(new File(backupdir, file.getName() + ".meta"));
                     }
                 }
             }
