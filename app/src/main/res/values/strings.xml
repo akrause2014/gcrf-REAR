@@ -3,6 +3,7 @@
     <string name="pref_key_file_length">pref_key_file_length</string>
     <string name="pref_key_frequency">pref_key_frequency</string>
     <string name="pref_key_upload_active">pref_key_upload_active</string>
+    <string name="pref_key_backup_active">pref_key_backup_active</string>
     <string name="pref_key_upload_url">pref_key_upload_url</string>
     <string name="pref_key_upload_device">pref_key_upload_device</string>
     <string name="pref_key_upload_period">pref_key_upload_period</string>

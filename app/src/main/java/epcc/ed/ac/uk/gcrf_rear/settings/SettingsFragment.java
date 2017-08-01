@@ -3,6 +3,7 @@ package epcc.ed.ac.uk.gcrf_rear.settings;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v7.preference.CheckBoxPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.util.Log;
@@ -46,6 +47,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
             Log.d("preferences", "preference changed: " + key);
             if (key.equals(getString(R.string.pref_key_upload_active))) {
                 ((REARApplication) getActivity().getApplication()).scheduleDataUpload();
+            }
+            else if (key.equals(getString(R.string.pref_key_backup_active))) {
+                boolean value = sharedPreferences.getBoolean(key, false);
+                CheckBoxPreference preference = (CheckBoxPreference)findPreference(key);
+                if (preference != null) {
+                    preference.setChecked(value);
+                }
             }
             else {
                 String value = sharedPreferences.getString(key, "");

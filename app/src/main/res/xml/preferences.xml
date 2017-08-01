@@ -7,7 +7,7 @@
             android:key="@string/pref_key_frequency"
             android:title="Frequency (Hertz)"
             android:numeric="integer"
-            android:defaultValue="50" />
+            android:defaultValue="100" />
         <android.support.v7.preference.EditTextPreference
             android:key="@string/pref_key_file_length"
             android:title="File length (in minutes)"
@@ -21,11 +21,15 @@
         <android.support.v7.preference.CheckBoxPreference
             android:key="@string/pref_key_upload_active"
             android:title="Automatic data transfer?"
+            android:defaultValue="true"/>
+        <android.support.v7.preference.CheckBoxPreference
+            android:key="@string/pref_key_backup_active"
+            android:title="Keep files after upload?"
             android:defaultValue="false"/>
         <android.support.v7.preference.EditTextPreference
             android:key="@string/pref_key_upload_url"
             android:title="URL for data upload"
-            android:defaultValue="http://dir-vm4.epcc.ed.ac.uk:8080/gcrfREAR/webapi/gcrf-REAR/" />
+            android:defaultValue="http://129.215.193.51:8080/gcrfREAR/webapi/gcrf-REAR/" />
         <android.support.v7.preference.EditTextPreference
             android:key="@string/pref_key_upload_device"
             android:title="Device ID"

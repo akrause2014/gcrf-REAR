@@ -85,13 +85,16 @@ public class MainActivity extends AppCompatActivity {
         final Sensor senMagneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         final ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton);
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        boolean isTracking = prefs.getBoolean("TrackerToggleButton", false);
+        toggle.setChecked(isTracking);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
+                prefs.edit().putBoolean("TrackerToggleButton", isChecked).commit();
                 if (isChecked) {
                     startService(new Intent(MainActivity.this, SensorListenerService.class));
                     mDatabase.setFileStoreOn(true);
-
                     if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
                             != PackageManager.PERMISSION_GRANTED
                             && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -113,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         CheckBox accelCheckBox = (CheckBox) findViewById(R.id.track_accel_checkBox);
         if (senAccelerometer == null) {
             accelCheckBox.setVisibility(View.GONE);

@@ -18,7 +18,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import epcc.ed.ac.uk.gcrf_rear.Logger;
@@ -72,6 +75,12 @@ public class DataStore {
 
     private final static int VERSION = 1;
 
+    public static final DateFormat FILENAME_DATE_FORMAT  = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss.SSS");
+
+    static {
+        FILENAME_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
     private DataOutputStream mOutputStream;
     private String mFileName;
     private int mNumRows;
@@ -87,7 +96,8 @@ public class DataStore {
         mElapsedTime = SystemClock.elapsedRealtime();
         this.context = context;
         if (isExternalStorageWritable()) {
-            mFileName = UUID.randomUUID().toString() + ".dat";
+//            mFileName = UUID.randomUUID().toString() + ".dat";
+            mFileName = FILENAME_DATE_FORMAT.format(new Date()) + ".dat";
             Log.d("data store", "opening file: " + mFileName + " at " + (new Date()));
 //            openFile(new File(context.getExternalFilesDir(null), "rear"), mFileName);
             openFile(REARApplication.getDataDir(context), mFileName);

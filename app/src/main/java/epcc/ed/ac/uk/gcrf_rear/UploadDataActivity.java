@@ -92,7 +92,7 @@ public class UploadDataActivity extends AppCompatActivity {
                 }
 //                File metadir = new File(UploadDataActivity.this.getExternalFilesDir(null), "rear_meta");
                 File metadir = REARApplication.getMetaDir(UploadDataActivity.this);
-                for (File file : datadir.listFiles()) {
+                for (File file : metadir.listFiles()) {
                     if (file.isFile()) {
                         if (file.delete()) {
 //                            filesAvailable--;
