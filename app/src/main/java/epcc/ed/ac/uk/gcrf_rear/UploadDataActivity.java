@@ -67,10 +67,11 @@ public class UploadDataActivity extends AppCompatActivity {
             String registerURL = baseURL + "register/" + deviceId;
             String dataURL = baseURL + "data/" + deviceId; //+ "/sensor";
             String metaURL = baseURL + "metadata/" + deviceId;
+            String locationURL = baseURL + "location/" + deviceId;
             Log.d("upload", "uploading data to " + dataURL);
             CheckBox btnDeleteData = (CheckBox) findViewById(R.id.delete_upload_checkbox);
             boolean deleteAfterUpload = btnDeleteData.isChecked();
-            new UploadFile(registerURL, dataURL, metaURL, deleteAfterUpload, filesAvailable).execute();
+            new UploadFile(registerURL, dataURL, metaURL, locationURL, deleteAfterUpload, filesAvailable).execute();
         }
     }
 
@@ -99,6 +100,12 @@ public class UploadDataActivity extends AppCompatActivity {
                         }
                     }
                 }
+                File locationdir = REARApplication.getLocationDir(UploadDataActivity.this);
+                for (File file : locationdir.listFiles()) {
+                    if (file.isFile()) {
+                        file.delete();
+                    }
+                }
                 TextView progressText = (TextView)findViewById(R.id.upload_progress_text);
                 progressText.setText("Number of data files: " + filesAvailable);
             }
@@ -117,14 +124,16 @@ public class UploadDataActivity extends AppCompatActivity {
         private final String registerURL;
         private final String dataURL;
         private final String metaURL;
+        private final String locationURL;
         private int filesAvailable;
         private final boolean deleteAfterUpload;
 
-        public UploadFile(String registerURL, String dataURL, String metaURL, boolean deleteAfterUpload, int filesAvailable) {
+        public UploadFile(String registerURL, String dataURL, String metaURL, String locationURL, boolean deleteAfterUpload, int filesAvailable) {
             this.deleteAfterUpload = deleteAfterUpload;
             this.registerURL = registerURL;
             this.dataURL = dataURL;
             this.metaURL = metaURL;
+            this.locationURL = locationURL;
             this.filesAvailable = filesAvailable;
         }
 
@@ -210,6 +219,18 @@ public class UploadDataActivity extends AppCompatActivity {
                     }
                 }
             }
+
+            File locationdir = REARApplication.getLocationDir(UploadDataActivity.this);
+            for (File file : locationdir.listFiles()) {
+                if (file.isFile()) {
+                    Log.d("upload", "Uploading location file: " + file);
+                    DataUpload.Response response = DataUpload.uploadFile(locationURL, file);
+                    if (response.success) {
+                        file.delete();
+                    }
+                }
+            }
+
             Log.d("upload", "Complete");
             return new UploadResult(numFiles);
         }

@@ -2,9 +2,11 @@ package epcc.ed.ac.uk.gcrf_rear;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -43,22 +45,33 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
+import epcc.ed.ac.uk.gcrf_rear.sensor.LocationListenerService;
 import epcc.ed.ac.uk.gcrf_rear.sensor.SensorListenerService;
 import epcc.ed.ac.uk.gcrf_rear.settings.SettingsActivity;
 
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseThread mDatabase;
-    private static final int DEFAULT_SAMPLING_RATE = 50; // Hertz
+
+    private BroadcastReceiver uiUpdated= new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final TextView textView = (TextView) findViewById(R.id.sensor_text);
+            textView.setText(intent.getExtras().getString("status"));
+        }
+    };
+
 
     private int getRate() {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         String value = settings.getString(getResources().getString(R.string.pref_key_frequency), null);
-        int rate = DEFAULT_SAMPLING_RATE;
+        int defaultRate = Integer.parseInt(getString(R.string.default_frequency));
+        int rate = defaultRate;
         if (value != null) {
             try {
                 rate = Integer.valueOf(value);
-                if (rate <= 0) rate = DEFAULT_SAMPLING_RATE;
+                if (rate <= 0) rate = defaultRate;
             } catch (NumberFormatException e) {
                 // ignore
             }
@@ -75,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        registerReceiver(uiUpdated, new IntentFilter("LOCATION_UPDATED"));
 //        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mDatabase = ((REARApplication) getApplication()).getDatabase();
         mDatabase.setSensorTextView((TextView) findViewById(R.id.sensor_text));
@@ -103,15 +117,14 @@ public class MainActivity extends AppCompatActivity {
                                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
                         return;
                     }
-//                    registerLocationListener();
+                    startService(new Intent(MainActivity.this, LocationListenerService.class));
                 } else {
                     Log.d("main", "unregistered listener");
                     stopService(new Intent(MainActivity.this, SensorListenerService.class));
+                    stopService(new Intent(MainActivity.this, LocationListenerService.class));
                     mDatabase.setFileStoreOn(false);
                     mDatabase.close();
                     sensorTextView.setText("");
-//                    final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-//                    locationManager.removeUpdates((LocationListener) getApplication());
                 }
             }
         });
@@ -121,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             accelCheckBox.setVisibility(View.GONE);
         }
         else {
-            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("AccelSensor", true);
+            boolean isChecked = prefs.getBoolean("AccelSensor", true);
             accelCheckBox.setChecked(isChecked);
             accelCheckBox.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -138,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
             gyroCheckBox.setVisibility(View.GONE);
         }
         else {
-            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("GyroSensor", true);
+            boolean isChecked = prefs.getBoolean("GyroSensor", true);
             gyroCheckBox.setChecked(isChecked);
             gyroCheckBox.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -155,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
             magnetCheckBox.setVisibility(View.GONE);
         }
         else {
-            boolean isChecked = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("MagnetSensor", true);
+            boolean isChecked = prefs.getBoolean("MagnetSensor", true);
             magnetCheckBox.setChecked(isChecked);
             magnetCheckBox.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -176,6 +189,12 @@ public class MainActivity extends AppCompatActivity {
         TextView freqText = (TextView)findViewById(R.id.main_frequency_text);
         freqText.setText("Frequency: " + rate + " Hertz");
 //        startService(new Intent(this, SensorListenerService.class));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(uiUpdated);
     }
 
     @Override
@@ -206,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
             case 1: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    registerLocationListener();
+                    startService(new Intent(this, LocationListenerService.class));
                 }
             }
         }
@@ -268,26 +287,13 @@ public class MainActivity extends AppCompatActivity {
                 this.startActivity(intent);
                 return true;
             }
+            case R.id.menu_location: {
+                startService(new Intent(MainActivity.this, LocationListenerService.class));
+                return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    private void registerLocationListener() {
-        final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, (LocationListener) getApplication());
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) getApplication());
-        Log.d("main", "registered listener for GPS");
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if (location != null) {
-            Log.d("location",
-                    "Lat/Lon: " + location.getLatitude() + "," + location.getLongitude()
-                            + "\nAccuracy: " + location.getAccuracy()
-                            + "\nAltitude: " + location.getAltitude());
-        } else {
-            ((TextView) findViewById(R.id.sensor_text)).setText("No GPS location available.\nLat/Lon: ---/---");
-        }
-
     }
 
     public class RegisterDevice extends AsyncTask<Void, Void, String> {

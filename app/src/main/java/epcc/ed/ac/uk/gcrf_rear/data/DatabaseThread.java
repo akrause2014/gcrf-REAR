@@ -133,19 +133,10 @@ public class DatabaseThread extends Thread {
             }
             private void handleLocationMessage(Message msg) {
 //                Log.d("database", "Received location message");
-                try {
-                    Location location = (Location) msg.obj;
-                    DataStore store = getFileStore(location.getTime()*1000000); // time is in milliseconds
-                    if (store != null) {
-                        store.writeLocation(location);
-//                        if (mLocationTextView != null) {
-//                            mLocationTextView.setText("GPS location available:\nLon/Lat: "
-//                                    + location.getLongitude() + "," + location.getLatitude());
-//                        }
-                    }
-                } catch (IOException e) {
-                    Log.e("database", "error opening file store", e);
-                }
+//                Location location = (Location) msg.obj;
+//                if (location != null) {
+//                    long timeInMillisUTC = location.getTime();
+//                }
             }
             private void handleSensorMessage(Message msg) {
                 DataPoint dataPoint = (DataPoint)msg.obj;

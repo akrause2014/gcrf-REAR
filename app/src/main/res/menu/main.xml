@@ -5,4 +5,5 @@
     <item android:id="@+id/menu_register" android:title="Register Device"/>
     <item android:id="@+id/menu_view_log" android:title="Logs"/>
     <item android:id="@+id/menu_settings" android:title="Settings"/>
+    <item android:id="@+id/menu_location" android:title="Location"/>
 </menu>

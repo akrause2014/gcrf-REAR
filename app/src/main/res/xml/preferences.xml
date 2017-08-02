@@ -7,7 +7,7 @@
             android:key="@string/pref_key_frequency"
             android:title="Frequency (Hertz)"
             android:numeric="integer"
-            android:defaultValue="100" />
+            android:defaultValue="@string/default_frequency" />
         <android.support.v7.preference.EditTextPreference
             android:key="@string/pref_key_file_length"
             android:title="File length (in minutes)"

@@ -69,6 +69,10 @@ public class REARApplication extends Application implements SensorEventListener,
         return new File(getStorageDir(context), "rear_backup");
     }
 
+    public static File getLocationDir(Context context) {
+        return new File(getStorageDir(context), "rear_location");
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -76,6 +80,7 @@ public class REARApplication extends Application implements SensorEventListener,
         getDataDir(this).mkdir();
         getMetaDir(this).mkdir();
         getBackupDir(this).mkdir();
+        getLocationDir(this).mkdir();
 
         mDatabase = new DatabaseThread();
         mDatabase.setContext(this);

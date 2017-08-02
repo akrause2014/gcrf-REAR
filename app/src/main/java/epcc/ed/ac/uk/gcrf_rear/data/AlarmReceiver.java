@@ -49,9 +49,9 @@ public class AlarmReceiver extends BroadcastReceiver
             String registerURL = baseURL + "register/" + deviceId;
             String dataURL = baseURL + "data/" + deviceId; // + "/sensor";
             String metaURL = baseURL + "metadata/" + deviceId;
+            String locationURL = baseURL + "location/" + deviceId;
             String excludeFile = settings.getString(context.getString(R.string.current_data_store_file), null);
-            File datadir = REARApplication.getDataDir(context);
-            new UploadFile(registerURL, metaURL, dataURL, datadir, excludeFile, keepBackup, context).execute();
+            new UploadFile(registerURL, metaURL, dataURL, locationURL, excludeFile, keepBackup, context).execute();
         }
 
         // delete the oldest week if there is not enough space on the SD card
@@ -76,22 +76,26 @@ public class AlarmReceiver extends BroadcastReceiver
         private final String registerURL;
         private final String url;
         private final String metaURL;
+        private final String locationURL;
         private final File datadir;
         private final File metadir;
         private final File backupdir;
+        private final File locationdir;
         private final String excludeFile;
         private final boolean keepBackup;
         private final Context context;
 
-        public UploadFile(String registerURL, String metaurl, String url, File datadir, String excludeFile, boolean keepBackup, Context context) {
+        public UploadFile(String registerURL, String metaurl, String url, String locationurl, String excludeFile, boolean keepBackup, Context context) {
             this.registerURL = registerURL;
             this.metaURL = metaurl;
             this.url = url;
-            this.datadir = datadir;
+            this.locationURL = locationurl;
+            this.datadir = REARApplication.getDataDir(context);
             this.context = context;
             this.excludeFile = excludeFile;
             this.metadir = REARApplication.getMetaDir(context);
             this.backupdir = REARApplication.getBackupDir(context);
+            this.locationdir = REARApplication.getLocationDir(context);
             this.keepBackup = keepBackup;
         }
         @Override
@@ -150,6 +154,16 @@ public class AlarmReceiver extends BroadcastReceiver
                     }
                 }
             }
+
+            for (File file : locationdir.listFiles()) {
+                if (file.isFile()) {
+                    Log.d("upload", "Uploading location file: " + file);
+                    DataUpload.Response response = DataUpload.uploadFile(locationURL, file);
+                    if (response.success) {
+                        file.delete();
+                    }
+                }
+            }
             return numFiles;
         }
 
@@ -157,7 +171,7 @@ public class AlarmReceiver extends BroadcastReceiver
         protected void onPostExecute(Integer numFiles) {
             if (numFiles != null && numFiles > 0) {
                 Log.d("upload", "Data upload complete: " + numFiles + " files");
-                Logger.log(context, "Data upload complete: " + numFiles + " files\n");
+//                Logger.log(context, "Data upload complete: " + numFiles + " files\n");
             }
 
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);

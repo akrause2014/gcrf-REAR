@@ -7,6 +7,7 @@
     <string name="pref_key_upload_url">pref_key_upload_url</string>
     <string name="pref_key_upload_device">pref_key_upload_device</string>
     <string name="pref_key_upload_period">pref_key_upload_period</string>
+    <string name="default_frequency">100</string>
     <string name="last_upload_date">last_upload_date</string>
     <string name="base_url">http://dir-vm4.epcc.ed.ac.uk:8080/gcrfREAR/webapi/gcrf-REAR/</string>
     <string name="register_user">gcrfREAR</string>

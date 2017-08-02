@@ -33,6 +33,8 @@
         <receiver android:name=".data.AlarmReceiver"/>
         <service android:enabled="true"
             android:name=".sensor.SensorListenerService"/>
+        <service android:enabled="true"
+            android:name=".sensor.LocationListenerService"/>
     </application>
 
 </manifest>
