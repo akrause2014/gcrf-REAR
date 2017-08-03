@@ -9,7 +9,7 @@
     <string name="pref_key_upload_period">pref_key_upload_period</string>
     <string name="default_frequency">100</string>
     <string name="last_upload_date">last_upload_date</string>
-    <string name="base_url">http://dir-vm4.epcc.ed.ac.uk:8080/gcrfREAR/webapi/gcrf-REAR/</string>
+    <string name="base_url">http://129.215.193.51:8080/gcrfREAR/webapi/gcrf-REAR/</string>
     <string name="register_user">gcrfREAR</string>
     <string name="system_time">SystemTime</string>
     <string name="elapsed_real_time">ElapsedRealTime</string>
