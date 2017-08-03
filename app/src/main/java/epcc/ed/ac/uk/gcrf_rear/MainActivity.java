@@ -124,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
                     stopService(new Intent(MainActivity.this, LocationListenerService.class));
                     mDatabase.setFileStoreOn(false);
                     mDatabase.close();
-                    sensorTextView.setText("");
                 }
             }
         });

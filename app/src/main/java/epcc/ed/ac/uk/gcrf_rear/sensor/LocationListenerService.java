@@ -67,7 +67,11 @@ public class LocationListenerService extends Service implements LocationListener
         super.onDestroy();
         unregisterListener();
         broadcastLocation(mCurrentLocation);
-        storeLocation(mCurrentLocation);
+        if (locationFile == null && mCurrentLocation != null) {
+            // this will be the last known location we retrieved at the start
+            // no updates since so we store this one and hope for the best
+            storeLocation(mCurrentLocation);
+        }
 //        Log.d("location", "unregistered listener");
 
     }
@@ -138,6 +142,11 @@ public class LocationListenerService extends Service implements LocationListener
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
 //        Log.d("main", "registered location listener");
         mCurrentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        if (isBetterLocation(networkLocation, mCurrentLocation)) {
+            mCurrentLocation = networkLocation;
+        }
+        broadcastLocation(mCurrentLocation);
     }
 
     private void unregisterListener() {
