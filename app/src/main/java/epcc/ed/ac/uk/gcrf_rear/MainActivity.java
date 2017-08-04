@@ -28,9 +28,13 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -102,10 +106,12 @@ public class MainActivity extends AppCompatActivity {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         boolean isTracking = prefs.getBoolean("TrackerToggleButton", false);
         toggle.setChecked(isTracking);
+        showRecording(isTracking);
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
                 prefs.edit().putBoolean("TrackerToggleButton", isChecked).commit();
+                showRecording(isChecked);
                 if (isChecked) {
                     startService(new Intent(MainActivity.this, SensorListenerService.class));
                     mDatabase.setFileStoreOn(true);
@@ -187,7 +193,6 @@ public class MainActivity extends AppCompatActivity {
         int rate = getRate();
         TextView freqText = (TextView)findViewById(R.id.main_frequency_text);
         freqText.setText("Frequency: " + rate + " Hertz");
-//        startService(new Intent(this, SensorListenerService.class));
     }
 
     @Override
@@ -198,9 +203,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    private void showRecording(boolean isRecording) {
+        ImageView image = (ImageView) findViewById(R.id.recording_image_view);
+        if (isRecording) {
+            image.setVisibility(View.VISIBLE);
+        }
+        else {
+            image.setVisibility(View.INVISIBLE);
+        }
     }
 
     private void registerDevice(String name, String password) {
