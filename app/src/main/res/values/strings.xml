@@ -7,7 +7,6 @@
     <string name="pref_key_upload_url">pref_key_upload_url</string>
     <string name="pref_key_upload_device">pref_key_upload_device</string>
     <string name="pref_key_upload_period">pref_key_upload_period</string>
-    <string name="default_frequency">100</string>
     <string name="last_upload_date">last_upload_date</string>
     <string name="base_url">http://129.215.193.51:8080/gcrfREAR/webapi/gcrf-REAR/</string>
     <string name="register_user">gcrfREAR</string>
@@ -18,4 +17,5 @@
     <string name="sensor_gyro_check">GyroSensor</string>
     <string name="sensor_magnet_check">MagnetSensor</string>
     <string name="current_data_store_file">FileDataStore</string>
+    <string name="main_instruction_text">Please leave stationary and record while charging.</string>
 </resources>

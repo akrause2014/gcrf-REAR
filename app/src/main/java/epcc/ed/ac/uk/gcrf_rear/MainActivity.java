@@ -11,30 +11,22 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.text.method.PasswordTransformationMethod;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.LinearInterpolator;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -70,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private int getRate() {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         String value = settings.getString(getResources().getString(R.string.pref_key_frequency), null);
-        int defaultRate = Integer.parseInt(getString(R.string.default_frequency));
+        int defaultRate = getResources().getInteger(R.integer.default_frequency);
         int rate = defaultRate;
         if (value != null) {
             try {
@@ -208,12 +200,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showRecording(boolean isRecording) {
-        ImageView image = (ImageView) findViewById(R.id.recording_image_view);
+        View rec = findViewById(R.id.recording_image_view);
         if (isRecording) {
-            image.setVisibility(View.VISIBLE);
+            rec.setVisibility(View.VISIBLE);
         }
         else {
-            image.setVisibility(View.INVISIBLE);
+            rec.setVisibility(View.INVISIBLE);
         }
     }
 

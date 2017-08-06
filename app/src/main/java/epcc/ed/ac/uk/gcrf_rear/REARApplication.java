@@ -31,11 +31,9 @@ import epcc.ed.ac.uk.gcrf_rear.data.DatabaseThread;
  * Created by akrause on 14/11/2016.
  */
 
-public class REARApplication extends Application implements SensorEventListener, LocationListener {
+public class REARApplication extends Application implements SensorEventListener {
 
     private DatabaseThread mDatabase;
-    private Location mCurrentLocation = null;
-    private long mLocationUpdates;
 
     public static File getStorageDir(Context context) {
         File root = new File("/storage/extSdCard");
@@ -87,11 +85,12 @@ public class REARApplication extends Application implements SensorEventListener,
         mDatabase.start();
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         String value = settings.getString(getString(R.string.pref_key_file_length), null);
-        int dataSize = 1;
+        int defaultDataSize = getResources().getInteger(R.integer.default_data_size);
+        int dataSize = defaultDataSize;
         if (value != null) {
             try {
                 dataSize = Integer.valueOf(value);
-                if (dataSize <= 0) dataSize = 1;
+                if (dataSize <= 0) dataSize = defaultDataSize;
             }
             catch (NumberFormatException e) {
                 // ignore
@@ -116,54 +115,6 @@ public class REARApplication extends Application implements SensorEventListener,
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
-
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        Log.d("location", "Location: " + location);
-        if (isBetterLocation(location, mCurrentLocation)) {
-            final LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            mCurrentLocation = location;
-            if (location.getAccuracy() < 10.0) {
-                try {
-                    mLocationUpdates = 5000;
-                    locationManager.removeUpdates(this);
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, mLocationUpdates, 25, this);
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, mLocationUpdates, 25, this);
-                } catch (SecurityException e) {
-                    // check permissions
-                }
-                Message msg = new Message();
-                msg.arg1 = DatabaseThread.LOCATION_MSG;
-                msg.obj = location;
-                mDatabase.mHandler.sendMessage(msg);
-            }
-            else if (mLocationUpdates > 100) {
-                try {
-                    mLocationUpdates = 100;
-                    locationManager.removeUpdates(this);
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, mLocationUpdates, 25, this);
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, mLocationUpdates, 25, this);
-                } catch (SecurityException e) {
-                    // check permissions
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onProviderEnabled(String s) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String s) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String s, int i, Bundle bundle) {
 
     }
 

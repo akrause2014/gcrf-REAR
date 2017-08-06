@@ -12,7 +12,7 @@
         android:layout_alignParentTop="true" >
 
         <TextView
-            android:text="Please leave stationary and record while charging."
+            android:text="@string/main_instruction_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/info_box"
@@ -55,14 +55,34 @@
             android:id="@+id/track_magnet_checkBox"
             android:layout_weight="1" />
 
-        <ImageView
+        <LinearLayout
             android:id="@+id/recording_image_view"
-            android:visibility="invisible"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:padding="10dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/red_dot_64" />
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/red_dot_img"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/red_dot_64" />
+
+            <TextView
+                android:id="@+id/rec_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_weight="1"
+                android:textColor="#F00"
+                android:text="REC"
+                android:textStyle="normal|bold"/>
+
+        </LinearLayout>
 
         <ToggleButton
             android:text="ToggleButton"
@@ -70,7 +90,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/toggleButton"
             android:textOff="START"
-            android:textOn="RECORDING"
+            android:textOn="STOP"
             android:layout_weight="1" />
 
         <TextView

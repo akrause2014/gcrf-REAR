@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="default_frequency">100</integer>
+    <integer name="default_data_size">5</integer>
+</resources>

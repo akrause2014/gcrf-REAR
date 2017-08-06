@@ -75,18 +75,16 @@ public class DatabaseThread extends Thread {
         Log.d("database", "set data size to: " + dataSize);
 
         if (dataSize > 0) {
-//            mFileStoreLength = dataSize*60l*1000000000l; // minutes
-
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
             String value = settings.getString(mContext.getString(R.string.pref_key_frequency), null);
-            int freq = 50;
+            int defaultRate = mContext.getResources().getInteger(R.integer.default_frequency);
+            int freq = defaultRate;
             if (value != null) {
                 try {
                     freq = Integer.valueOf(value);
-                    if (freq <= 0) freq = 50;
+                    if (freq <= 0) freq = defaultRate;
                 } catch (NumberFormatException e) {
                     // ignore
-                    Log.d("database", "Cannot parse: " + value);
                 }
             }
             mFileStoreLength = dataSize * 60 * freq;
